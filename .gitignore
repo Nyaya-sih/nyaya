@@ -1,0 +1,105 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+../venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# Data files (large datasets)
+data/raw/**/*.pdf
+data/raw/**/*.tar
+data/raw/**/*.gz
+data/raw/*
+data/processed/*
+data/logs/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/logs/.gitkeep
+*.pkl
+*.parquet
+
+# Model artifacts
+models/*.bin
+models/*.pt
+models/*.pth
+models/*.h5
+models/*.pkl
+models/*.joblib
+checkpoints/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+backup_*.sql
+postgres_data/
+redis_data/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# API keys and secrets
+secrets/
+*.key
+*.pem
+credentials.json
+
+# Temporary files
+*.tmp
+temp/
+tmp/
