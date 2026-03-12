@@ -9,6 +9,7 @@ from src.features.similar_cases.search_engine import (
     SimilarCaseSearchEngine,
     SearchFilters,
 )
+from src.features.similar_cases.reranker import RankedResult
 from src.features.similar_cases.similarity_analyzer import (
     SimilarityExplanation,
     SimilarityDimension,
@@ -231,3 +232,52 @@ def test_search_falls_back_when_reranker_raises(monkeypatch):
     assert response.retrieval_mode == "degraded"
     assert any("Reranker" in warning for warning in response.warnings)
     assert response.total_results == 1
+
+
+def test_reranker_receives_limited_candidate_pool(monkeypatch):
+    """Reranker should only receive top-N candidates by vector score."""
+
+    class CapturingReranker:
+        def __init__(self):
+            self.last_count = 0
+
+        def rerank(self, query_text, candidates, top_k=10):
+            self.last_count = len(candidates)
+            return [
+                RankedResult(
+                    case_id=c.case_id,
+                    vector_score=c.similarity_score,
+                    rerank_score=c.similarity_score,
+                    combined_score=c.similarity_score,
+                    payload=c.payload,
+                )
+                for c in candidates[:top_k]
+            ]
+
+    engine = _build_engine()
+    store = cast(DummyVectorStore, engine.vector_store)
+    store.next_results = [
+        SearchResult(
+            case_id=i,
+            case_title=f"Case {i}",
+            court="High Court of Delhi",
+            date_of_judgment="2023-01-01",
+            case_type="Criminal",
+            verdict="Convicted",
+            similarity_score=float(100 - i) / 100.0,
+            payload={"statutes_cited": ["IPC"], "sections_invoked": ["Section 302"]},
+        )
+        for i in range(1, 31)
+    ]
+    reranker = CapturingReranker()
+    cast(Any, engine).reranker = reranker
+
+    monkeypatch.setattr(settings, "enable_reranking", True)
+    monkeypatch.setattr(settings, "reranker_candidate_limit", 12)
+    response = engine.search(
+        "criminal appeal high court section 302 ipc text",
+        filters=SearchFilters(),
+        top_k=5,
+    )
+    assert reranker.last_count == 12
+    assert response.total_results == 5

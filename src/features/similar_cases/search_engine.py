@@ -237,8 +237,16 @@ class SimilarCaseSearchEngine:
 
         if settings.enable_reranking and self.reranker:
             try:
+                rerank_pool = sorted(
+                    candidates,
+                    key=lambda item: item.similarity_score,
+                    reverse=True,
+                )
+                limit = int(settings.reranker_candidate_limit)
+                if limit > 0:
+                    rerank_pool = rerank_pool[:limit]
                 ranked_candidates = self.reranker.rerank(
-                    summarized_text, candidates, top_k=top_k
+                    summarized_text, rerank_pool, top_k=top_k
                 )
             except Exception as exc:
                 logger.warning("Reranker failed; using vector ranking", error=str(exc))

@@ -1,1 +1,250 @@
-{"query_id": "sample_1", "relevant_case_ids": [101, 102], "retrieved_case_ids": [101, 200, 102]}
+{"query_id": "case_5120", "query_case_id": 5120, "relevant_case_ids": [113, 267, 283, 296, 350]}
+{"query_id": "case_3642", "query_case_id": 3642, "relevant_case_ids": [4956, 6122, 7171, 3260, 1096]}
+{"query_id": "case_5079", "query_case_id": 5079, "relevant_case_ids": [1455, 2622, 1124, 1870, 2301]}
+{"query_id": "case_9412", "query_case_id": 9412, "relevant_case_ids": [7953, 11954, 12753, 12791, 12837]}
+{"query_id": "case_4446", "query_case_id": 4446, "relevant_case_ids": [2589, 2686, 1125, 3178, 4280]}
+{"query_id": "case_3794", "query_case_id": 3794, "relevant_case_ids": [1006, 2251, 2841, 4404, 2602]}
+{"query_id": "case_1155", "query_case_id": 1155, "relevant_case_ids": [1660, 4165, 6882, 7609, 1585]}
+{"query_id": "case_3226", "query_case_id": 3226, "relevant_case_ids": [11022, 12819, 12840, 11119, 11121]}
+{"query_id": "case_131", "query_case_id": 131, "relevant_case_ids": [184, 10540, 289, 1484, 940]}
+{"query_id": "case_3625", "query_case_id": 3625, "relevant_case_ids": [2561, 1621, 3448, 1044, 5319]}
+{"query_id": "case_6857", "query_case_id": 6857, "relevant_case_ids": [2683, 7651, 7653, 1569, 1793]}
+{"query_id": "case_1736", "query_case_id": 1736, "relevant_case_ids": [1368, 2853, 3303, 4795, 5196]}
+{"query_id": "case_5151", "query_case_id": 5151, "relevant_case_ids": [771, 3258, 4011, 4113, 4901]}
+{"query_id": "case_8861", "query_case_id": 8861, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_5967", "query_case_id": 5967, "relevant_case_ids": [744, 950, 1411, 1719, 1871]}
+{"query_id": "case_5928", "query_case_id": 5928, "relevant_case_ids": [45, 83, 96, 101, 10924]}
+{"query_id": "case_6708", "query_case_id": 6708, "relevant_case_ids": [82, 112, 137, 10813, 175]}
+{"query_id": "case_3859", "query_case_id": 3859, "relevant_case_ids": [3789, 5581, 7268, 1691, 2837]}
+{"query_id": "case_7445", "query_case_id": 7445, "relevant_case_ids": [951, 2508, 2548, 7912, 1507]}
+{"query_id": "case_11670", "query_case_id": 11670, "relevant_case_ids": [11017, 12764, 11180, 12200, 12237]}
+{"query_id": "case_4851", "query_case_id": 4851, "relevant_case_ids": [7214, 5175, 5068, 7289, 2230]}
+{"query_id": "case_326", "query_case_id": 326, "relevant_case_ids": [38, 25, 371, 41, 61]}
+{"query_id": "case_9002", "query_case_id": 9002, "relevant_case_ids": [11030, 11541, 8617, 8653, 8663]}
+{"query_id": "case_619", "query_case_id": 619, "relevant_case_ids": [1696, 3146, 3155, 5465, 7270]}
+{"query_id": "case_8837", "query_case_id": 8837, "relevant_case_ids": [11030, 11541, 8617, 8653, 8663]}
+{"query_id": "case_6890", "query_case_id": 6890, "relevant_case_ids": [917, 2722]}
+{"query_id": "case_1310", "query_case_id": 1310, "relevant_case_ids": [5735, 1581]}
+{"query_id": "case_13491", "query_case_id": 13491, "relevant_case_ids": [11206, 11572, 12405, 11494, 11594]}
+{"query_id": "case_5768", "query_case_id": 5768, "relevant_case_ids": [98, 5070, 2209, 6006]}
+{"query_id": "case_4507", "query_case_id": 4507, "relevant_case_ids": [2126, 3867, 2244, 3209, 3929]}
+{"query_id": "case_3641", "query_case_id": 3641, "relevant_case_ids": [4261, 7140, 7526, 1748, 3963]}
+{"query_id": "case_618", "query_case_id": 618, "relevant_case_ids": [1571, 3120]}
+{"query_id": "case_9295", "query_case_id": 9295, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_3993", "query_case_id": 3993, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_7730", "query_case_id": 7730, "relevant_case_ids": [848, 3732, 7334, 580, 2660]}
+{"query_id": "case_1329", "query_case_id": 1329, "relevant_case_ids": [3383, 6831, 672, 613, 1207]}
+{"query_id": "case_3430", "query_case_id": 3430, "relevant_case_ids": [45, 83, 96, 101, 10924]}
+{"query_id": "case_12888", "query_case_id": 12888, "relevant_case_ids": [13746, 13757, 12599, 12706, 12846]}
+{"query_id": "case_13381", "query_case_id": 13381, "relevant_case_ids": [12185, 11263, 11674, 8641, 8689]}
+{"query_id": "case_13395", "query_case_id": 13395, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_11579", "query_case_id": 11579, "relevant_case_ids": [11022, 12819, 12840, 11119, 11121]}
+{"query_id": "case_331", "query_case_id": 331, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_2096", "query_case_id": 2096, "relevant_case_ids": [2407, 619, 1696, 3146, 3155]}
+{"query_id": "case_7966", "query_case_id": 7966, "relevant_case_ids": [8050, 8061, 8283, 8341]}
+{"query_id": "case_4970", "query_case_id": 4970, "relevant_case_ids": [715, 718, 1420, 1573, 2055]}
+{"query_id": "case_2913", "query_case_id": 2913, "relevant_case_ids": [13746, 13757, 12599, 12706, 12846]}
+{"query_id": "case_8423", "query_case_id": 8423, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_3660", "query_case_id": 3660, "relevant_case_ids": [1095, 1286, 1377, 1394, 1530]}
+{"query_id": "case_2778", "query_case_id": 2778, "relevant_case_ids": [2082, 2193, 2402, 1955, 1309]}
+{"query_id": "case_12895", "query_case_id": 12895, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_3369", "query_case_id": 3369, "relevant_case_ids": [783, 6180, 770, 3464, 5510]}
+{"query_id": "case_7339", "query_case_id": 7339, "relevant_case_ids": [2561, 1621, 3448, 1044, 5319]}
+{"query_id": "case_10139", "query_case_id": 10139, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_4447", "query_case_id": 4447, "relevant_case_ids": [3383, 6831, 672, 613, 1207]}
+{"query_id": "case_1271", "query_case_id": 1271, "relevant_case_ids": [12121, 896, 990, 1002, 5764]}
+{"query_id": "case_3121", "query_case_id": 3121, "relevant_case_ids": [715, 718, 1420, 1573, 2055]}
+{"query_id": "case_12370", "query_case_id": 12370, "relevant_case_ids": [11027, 12799, 12805, 11127, 11144]}
+{"query_id": "case_3662", "query_case_id": 3662, "relevant_case_ids": [1604, 2046, 7425, 960]}
+{"query_id": "case_28", "query_case_id": 28, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_1652", "query_case_id": 1652, "relevant_case_ids": [115, 547, 762, 952, 1278]}
+{"query_id": "case_991", "query_case_id": 991, "relevant_case_ids": [675, 978, 1639, 1948, 2289]}
+{"query_id": "case_8175", "query_case_id": 8175, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_4360", "query_case_id": 4360, "relevant_case_ids": [7205, 4957, 5077, 5228, 5244]}
+{"query_id": "case_2754", "query_case_id": 2754, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_1549", "query_case_id": 1549, "relevant_case_ids": [11027, 12799, 12805, 11127, 11144]}
+{"query_id": "case_7130", "query_case_id": 7130, "relevant_case_ids": [994, 4754, 688, 1478, 5715]}
+{"query_id": "case_6165", "query_case_id": 6165, "relevant_case_ids": [5473, 6462, 5144, 6611, 4657]}
+{"query_id": "case_3744", "query_case_id": 3744, "relevant_case_ids": [977, 1722, 2577, 2724, 4643]}
+{"query_id": "case_169", "query_case_id": 169, "relevant_case_ids": [355, 2040, 7853, 4077, 4316]}
+{"query_id": "case_13613", "query_case_id": 13613, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_2172", "query_case_id": 2172, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_455", "query_case_id": 455, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_3180", "query_case_id": 3180, "relevant_case_ids": [3439, 3556, 3974, 1331, 2250]}
+{"query_id": "case_3474", "query_case_id": 3474, "relevant_case_ids": [3645, 6858]}
+{"query_id": "case_1320", "query_case_id": 1320, "relevant_case_ids": [11022, 12819, 12840, 11119, 11121]}
+{"query_id": "case_5251", "query_case_id": 5251, "relevant_case_ids": [13746, 13757, 12599, 12706, 12846]}
+{"query_id": "case_3751", "query_case_id": 3751, "relevant_case_ids": [715, 718, 1420, 1573, 2055]}
+{"query_id": "case_2749", "query_case_id": 2749, "relevant_case_ids": [82, 112, 137, 10813, 175]}
+{"query_id": "case_5761", "query_case_id": 5761, "relevant_case_ids": [1125, 3204, 4808, 7605, 824]}
+{"query_id": "case_3628", "query_case_id": 3628, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_4862", "query_case_id": 4862, "relevant_case_ids": [11027, 12799, 12805, 11127, 11144]}
+{"query_id": "case_12298", "query_case_id": 12298, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_1400", "query_case_id": 1400, "relevant_case_ids": [52, 1000, 10746, 159, 165]}
+{"query_id": "case_5397", "query_case_id": 5397, "relevant_case_ids": [11027, 12799, 12805, 11127, 11144]}
+{"query_id": "case_9991", "query_case_id": 9991, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_5842", "query_case_id": 5842, "relevant_case_ids": [1100, 2490, 528, 5268, 714]}
+{"query_id": "case_405", "query_case_id": 405, "relevant_case_ids": [32, 372, 37, 90, 139]}
+{"query_id": "case_9460", "query_case_id": 9460, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_6318", "query_case_id": 6318, "relevant_case_ids": [176, 7677, 4620]}
+{"query_id": "case_7164", "query_case_id": 7164, "relevant_case_ids": [13746, 13757, 12599, 12706, 12846]}
+{"query_id": "case_13475", "query_case_id": 13475, "relevant_case_ids": [11017, 12764, 11180, 12200, 12237]}
+{"query_id": "case_9837", "query_case_id": 9837, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_6091", "query_case_id": 6091, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_7737", "query_case_id": 7737, "relevant_case_ids": [2589, 2686, 1125, 3178, 4280]}
+{"query_id": "case_7212", "query_case_id": 7212, "relevant_case_ids": [93, 10812, 1819, 1197, 3472]}
+{"query_id": "case_5392", "query_case_id": 5392, "relevant_case_ids": [635, 641, 600, 1253, 1198]}
+{"query_id": "case_3872", "query_case_id": 3872, "relevant_case_ids": [11027, 12799, 12805, 11127, 11144]}
+{"query_id": "case_2918", "query_case_id": 2918, "relevant_case_ids": [1662, 2449, 3175, 1539, 2880]}
+{"query_id": "case_14", "query_case_id": 14, "relevant_case_ids": [81, 460, 6759, 1177, 1482]}
+{"query_id": "case_10265", "query_case_id": 10265, "relevant_case_ids": [13746, 13757, 12599, 12706, 12846]}
+{"query_id": "case_9430", "query_case_id": 9430, "relevant_case_ids": [13746, 13757, 12599, 12706, 12846]}
+{"query_id": "case_1593", "query_case_id": 1593, "relevant_case_ids": [52, 1000, 10746, 159, 165]}
+{"query_id": "case_849", "query_case_id": 849, "relevant_case_ids": [32, 372, 37, 90, 139]}
+{"query_id": "case_8914", "query_case_id": 8914, "relevant_case_ids": [7953, 11954, 12753, 12791, 12837]}
+{"query_id": "case_2472", "query_case_id": 2472, "relevant_case_ids": [635, 641, 600, 1253, 1198]}
+{"query_id": "case_3790", "query_case_id": 3790, "relevant_case_ids": [1432, 1455, 1506, 1006, 1069]}
+{"query_id": "case_4841", "query_case_id": 4841, "relevant_case_ids": [12121, 896, 990, 1002, 5764]}
+{"query_id": "case_599", "query_case_id": 599, "relevant_case_ids": [11027, 12799, 12805, 11127, 11144]}
+{"query_id": "case_13244", "query_case_id": 13244, "relevant_case_ids": [11022, 12819, 12840, 11119, 11121]}
+{"query_id": "case_1457", "query_case_id": 1457, "relevant_case_ids": [143, 4200, 5411, 6794, 1343]}
+{"query_id": "case_6573", "query_case_id": 6573, "relevant_case_ids": [1455, 2622, 1124, 1870, 2301]}
+{"query_id": "case_1127", "query_case_id": 1127, "relevant_case_ids": [1662, 2449, 3175, 1539, 2880]}
+{"query_id": "case_13555", "query_case_id": 13555, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_5764", "query_case_id": 5764, "relevant_case_ids": [12121, 896, 990, 1002, 1004]}
+{"query_id": "case_9791", "query_case_id": 9791, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_2205", "query_case_id": 2205, "relevant_case_ids": [1630, 1243, 2114]}
+{"query_id": "case_3793", "query_case_id": 3793, "relevant_case_ids": [2589, 2686, 1125, 3178, 4280]}
+{"query_id": "case_1164", "query_case_id": 1164, "relevant_case_ids": [127, 138, 395, 410, 425]}
+{"query_id": "case_583", "query_case_id": 583, "relevant_case_ids": [3786, 7917, 5337, 4804]}
+{"query_id": "case_12183", "query_case_id": 12183, "relevant_case_ids": [11022, 12819, 12840, 11119, 11121]}
+{"query_id": "case_11671", "query_case_id": 11671, "relevant_case_ids": [11022, 12819, 12840, 11119, 11121]}
+{"query_id": "case_9534", "query_case_id": 9534, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_10022", "query_case_id": 10022, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_7121", "query_case_id": 7121, "relevant_case_ids": [771, 3258, 4011, 4113, 4901]}
+{"query_id": "case_4769", "query_case_id": 4769, "relevant_case_ids": [1397, 1463, 2599, 2766, 4524]}
+{"query_id": "case_9351", "query_case_id": 9351, "relevant_case_ids": [12760, 12224, 12794, 12798, 12754]}
+{"query_id": "case_4404", "query_case_id": 4404, "relevant_case_ids": [1006, 2251, 2841, 3794, 2602]}
+{"query_id": "case_9591", "query_case_id": 9591, "relevant_case_ids": [13796, 8102, 8139, 9330, 8608]}
+{"query_id": "case_10075", "query_case_id": 10075, "relevant_case_ids": [9949, 13709]}
+{"query_id": "case_3958", "query_case_id": 3958, "relevant_case_ids": [39, 117, 234, 1437, 6375]}
+{"query_id": "case_8974", "query_case_id": 8974, "relevant_case_ids": [12271, 11483, 9120, 9195]}
+{"query_id": "case_5234", "query_case_id": 5234, "relevant_case_ids": [7699, 2652, 5411, 6794, 1343]}
+{"query_id": "case_8924", "query_case_id": 8924, "relevant_case_ids": [11757, 11550]}
+{"query_id": "case_9421", "query_case_id": 9421, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_6316", "query_case_id": 6316, "relevant_case_ids": [7724, 2313, 4174, 4651, 677]}
+{"query_id": "case_3774", "query_case_id": 3774, "relevant_case_ids": [2155, 5602, 6630, 6855, 958]}
+{"query_id": "case_3758", "query_case_id": 3758, "relevant_case_ids": [726, 908, 1673, 2437, 7684]}
+{"query_id": "case_1131", "query_case_id": 1131, "relevant_case_ids": [830, 1430, 1600, 2700, 2774]}
+{"query_id": "case_4419", "query_case_id": 4419, "relevant_case_ids": [675, 978, 1639, 1948, 2289]}
+{"query_id": "case_1437", "query_case_id": 1437, "relevant_case_ids": [39, 117, 234, 3958, 6375]}
+{"query_id": "case_7211", "query_case_id": 7211, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_8603", "query_case_id": 8603, "relevant_case_ids": [8846, 9026]}
+{"query_id": "case_990", "query_case_id": 990, "relevant_case_ids": [4561, 6107, 4192]}
+{"query_id": "case_6459", "query_case_id": 6459, "relevant_case_ids": [173, 6843, 7090, 336, 538]}
+{"query_id": "case_6977", "query_case_id": 6977, "relevant_case_ids": [2837, 3938, 5631, 3789, 3859]}
+{"query_id": "case_9015", "query_case_id": 9015, "relevant_case_ids": [12226, 8884, 9137]}
+{"query_id": "case_10864", "query_case_id": 10864, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_3257", "query_case_id": 3257, "relevant_case_ids": [2835, 3949, 5521, 6653, 1262]}
+{"query_id": "case_4398", "query_case_id": 4398, "relevant_case_ids": [5189, 6945, 7185, 1503]}
+{"query_id": "case_2041", "query_case_id": 2041, "relevant_case_ids": [6352, 3417, 2128, 7566, 2088]}
+{"query_id": "case_3707", "query_case_id": 3707, "relevant_case_ids": [655, 1363, 1424, 2793, 3741]}
+{"query_id": "case_3981", "query_case_id": 3981, "relevant_case_ids": [4767, 6772, 3265, 2385, 7257]}
+{"query_id": "case_10040", "query_case_id": 10040, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_4327", "query_case_id": 4327, "relevant_case_ids": [1100, 2490, 528, 5268, 714]}
+{"query_id": "case_5888", "query_case_id": 5888, "relevant_case_ids": [6194, 6499]}
+{"query_id": "case_13618", "query_case_id": 13618, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_915", "query_case_id": 915, "relevant_case_ids": [336, 2566, 3254, 4321, 4425]}
+{"query_id": "case_8392", "query_case_id": 8392, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_10073", "query_case_id": 10073, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_3262", "query_case_id": 3262, "relevant_case_ids": [2082, 2193, 2402, 1955, 1309]}
+{"query_id": "case_9810", "query_case_id": 9810, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_6697", "query_case_id": 6697, "relevant_case_ids": [994, 4754, 688, 1478, 5715]}
+{"query_id": "case_11437", "query_case_id": 11437, "relevant_case_ids": [11024, 12797, 11135, 12876, 11206]}
+{"query_id": "case_4916", "query_case_id": 4916, "relevant_case_ids": [3809, 486, 622, 3574, 6254]}
+{"query_id": "case_8549", "query_case_id": 8549, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_2157", "query_case_id": 2157, "relevant_case_ids": [3533, 4671, 4889, 1159, 5451]}
+{"query_id": "case_8488", "query_case_id": 8488, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_9605", "query_case_id": 9605, "relevant_case_ids": [9396, 9509, 9360, 9538, 9618]}
+{"query_id": "case_1247", "query_case_id": 1247, "relevant_case_ids": [22, 49, 80, 106, 111]}
+{"query_id": "case_3267", "query_case_id": 3267, "relevant_case_ids": [677, 1830, 4532, 6461, 2234]}
+{"query_id": "case_481", "query_case_id": 481, "relevant_case_ids": [22, 49, 80, 106, 111]}
+{"query_id": "case_9127", "query_case_id": 9127, "relevant_case_ids": [13746, 13757, 12599, 12706, 12846]}
+{"query_id": "case_4737", "query_case_id": 4737, "relevant_case_ids": [2282, 1121]}
+{"query_id": "case_1829", "query_case_id": 1829, "relevant_case_ids": [7145, 4631, 5152]}
+{"query_id": "case_8514", "query_case_id": 8514, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_790", "query_case_id": 790, "relevant_case_ids": [2290, 2920, 2048, 1829, 7252]}
+{"query_id": "case_9443", "query_case_id": 9443, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_8420", "query_case_id": 8420, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_2789", "query_case_id": 2789, "relevant_case_ids": [715, 718, 1420, 1573, 2055]}
+{"query_id": "case_3916", "query_case_id": 3916, "relevant_case_ids": [4759, 7277]}
+{"query_id": "case_605", "query_case_id": 605, "relevant_case_ids": [4179, 3901]}
+{"query_id": "case_13703", "query_case_id": 13703, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_6719", "query_case_id": 6719, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_11650", "query_case_id": 11650, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_10093", "query_case_id": 10093, "relevant_case_ids": [9890, 10156, 10319, 9959, 10291]}
+{"query_id": "case_2715", "query_case_id": 2715, "relevant_case_ids": [861, 3489, 4914, 6179, 2636]}
+{"query_id": "case_3418", "query_case_id": 3418, "relevant_case_ids": [38, 25, 371, 41, 61]}
+{"query_id": "case_4280", "query_case_id": 4280, "relevant_case_ids": [2589, 2686, 1125, 3178, 675]}
+{"query_id": "case_2466", "query_case_id": 2466, "relevant_case_ids": [1770, 2375, 4326, 6491, 7541]}
+{"query_id": "case_2563", "query_case_id": 2563, "relevant_case_ids": [118, 508, 5475, 561, 1459]}
+{"query_id": "case_1553", "query_case_id": 1553, "relevant_case_ids": [11027, 12799, 12805, 11127, 11144]}
+{"query_id": "case_7140", "query_case_id": 7140, "relevant_case_ids": [3641, 4261, 7526, 1748, 3963]}
+{"query_id": "case_3096", "query_case_id": 3096, "relevant_case_ids": [3618, 1567, 1900, 3526, 5210]}
+{"query_id": "case_3833", "query_case_id": 3833, "relevant_case_ids": [2589, 2686, 1125, 3178, 4280]}
+{"query_id": "case_5576", "query_case_id": 5576, "relevant_case_ids": [1773, 2191, 2311, 2904, 3221]}
+{"query_id": "case_8905", "query_case_id": 8905, "relevant_case_ids": [12185, 11263, 11674, 8641, 8689]}
+{"query_id": "case_8444", "query_case_id": 8444, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_6384", "query_case_id": 6384, "relevant_case_ids": [1467, 2118, 912, 926, 1508]}
+{"query_id": "case_7634", "query_case_id": 7634, "relevant_case_ids": [7379, 6169]}
+{"query_id": "case_4759", "query_case_id": 4759, "relevant_case_ids": [3916, 7277]}
+{"query_id": "case_130", "query_case_id": 130, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_10024", "query_case_id": 10024, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_6205", "query_case_id": 6205, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_281", "query_case_id": 281, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_4575", "query_case_id": 4575, "relevant_case_ids": [1010, 1302, 1800, 1835, 2036]}
+{"query_id": "case_11123", "query_case_id": 11123, "relevant_case_ids": [11696, 13499, 13460, 12333, 8912]}
+{"query_id": "case_4563", "query_case_id": 4563, "relevant_case_ids": [7214, 5175, 5068, 7289, 2230]}
+{"query_id": "case_1649", "query_case_id": 1649, "relevant_case_ids": [983, 546, 1140, 1403, 1636]}
+{"query_id": "case_51", "query_case_id": 51, "relevant_case_ids": [149, 152, 160, 353, 1305]}
+{"query_id": "case_7394", "query_case_id": 7394, "relevant_case_ids": [561, 1459, 1590, 1874, 3647]}
+{"query_id": "case_2055", "query_case_id": 2055, "relevant_case_ids": [715, 718, 1420, 1573, 1976]}
+{"query_id": "case_5704", "query_case_id": 5704, "relevant_case_ids": [3618, 1567, 1900, 3526, 5210]}
+{"query_id": "case_891", "query_case_id": 891, "relevant_case_ids": [4911, 584]}
+{"query_id": "case_2797", "query_case_id": 2797, "relevant_case_ids": [1622, 1201, 1625, 5998, 1213]}
+{"query_id": "case_4316", "query_case_id": 4316, "relevant_case_ids": [7043, 1253, 4077, 355, 169]}
+{"query_id": "case_12154", "query_case_id": 12154, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_4086", "query_case_id": 4086, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_5235", "query_case_id": 5235, "relevant_case_ids": [1506, 1776, 5599, 3362, 7213]}
+{"query_id": "case_5709", "query_case_id": 5709, "relevant_case_ids": [7897, 6027, 1218, 4396, 7716]}
+{"query_id": "case_952", "query_case_id": 952, "relevant_case_ids": [115, 547, 762, 1278, 1501]}
+{"query_id": "case_3959", "query_case_id": 3959, "relevant_case_ids": [11022, 12819, 12840, 11119, 11121]}
+{"query_id": "case_1195", "query_case_id": 1195, "relevant_case_ids": [635, 641, 600, 1253, 1198]}
+{"query_id": "case_5985", "query_case_id": 5985, "relevant_case_ids": [14, 81, 460, 6759, 1177]}
+{"query_id": "case_2657", "query_case_id": 2657, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_5034", "query_case_id": 5034, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_5278", "query_case_id": 5278, "relevant_case_ids": [34, 86]}
+{"query_id": "case_7467", "query_case_id": 7467, "relevant_case_ids": [4869, 7315, 1425]}
+{"query_id": "case_8944", "query_case_id": 8944, "relevant_case_ids": [8731, 12196, 8844, 8954, 12269]}
+{"query_id": "case_3743", "query_case_id": 3743, "relevant_case_ids": [52, 1000, 10746, 159, 165]}
+{"query_id": "case_13653", "query_case_id": 13653, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_12312", "query_case_id": 12312, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_6251", "query_case_id": 6251, "relevant_case_ids": [575, 1467, 2118, 1228, 1082]}
+{"query_id": "case_4092", "query_case_id": 4092, "relevant_case_ids": [1879, 2063, 2233, 2574, 4462]}
+{"query_id": "case_6547", "query_case_id": 6547, "relevant_case_ids": [813, 2506, 2803]}
+{"query_id": "case_4834", "query_case_id": 4834, "relevant_case_ids": [715, 718, 1420, 1573, 2055]}
+{"query_id": "case_5792", "query_case_id": 5792, "relevant_case_ids": [5786, 1112, 1622, 1201, 1625]}
+{"query_id": "case_11356", "query_case_id": 11356, "relevant_case_ids": [12394, 11475, 11232, 11561, 11370]}
+{"query_id": "case_5489", "query_case_id": 5489, "relevant_case_ids": [45, 83, 96, 101, 10924]}
+{"query_id": "case_6601", "query_case_id": 6601, "relevant_case_ids": [3439, 3180, 1622, 3556, 1201]}
+{"query_id": "case_1864", "query_case_id": 1864, "relevant_case_ids": [2145, 4678, 5105, 6164, 7424]}
+{"query_id": "case_8834", "query_case_id": 8834, "relevant_case_ids": [1, 38, 11875, 13, 367]}
+{"query_id": "case_6783", "query_case_id": 6783, "relevant_case_ids": [13725, 13752, 12572, 10948, 7975]}
+{"query_id": "case_2677", "query_case_id": 2677, "relevant_case_ids": [2082, 2193, 2402, 1955, 1309]}
+{"query_id": "case_11129", "query_case_id": 11129, "relevant_case_ids": [11013, 11642, 11729, 11200, 11248]}
+{"query_id": "case_13637", "query_case_id": 13637, "relevant_case_ids": [13746, 13757, 12599, 12706, 12846]}
+{"query_id": "case_5074", "query_case_id": 5074, "relevant_case_ids": [3406, 3539, 5256, 6058, 2382]}
+{"query_id": "case_5968", "query_case_id": 5968, "relevant_case_ids": [715, 718, 1420, 1573, 2055]}
+{"query_id": "case_5820", "query_case_id": 5820, "relevant_case_ids": [571, 637, 1256, 1559, 2445]}
+{"query_id": "case_5084", "query_case_id": 5084, "relevant_case_ids": [1724, 4695, 1185, 7707]}
+{"query_id": "case_190", "query_case_id": 190, "relevant_case_ids": [52, 1000, 10746, 159, 165]}

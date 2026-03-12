@@ -42,10 +42,16 @@ class Settings(BaseSettings):
         description="Default number of results for similarity search",
     )
     vector_search_candidates: int = Field(
-        default=50,
-        ge=10,
+        default=20,
+        ge=5,
         le=200,
         description="Number of vector candidates before reranking",
+    )
+    reranker_candidate_limit: int = Field(
+        default=12,
+        ge=5,
+        le=100,
+        description="Maximum candidates passed to reranker",
     )
     similarity_threshold: float = Field(
         default=0.5,

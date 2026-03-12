@@ -226,8 +226,32 @@ def _write_manifest(entries: list[dict]) -> None:
     """
     output_path = Path("data/processed/embedding_manifest.json")
     output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    existing_entries: list[dict] = []
+    if output_path.exists():
+        try:
+            existing = json.loads(output_path.read_text(encoding="utf-8"))
+            if isinstance(existing, list):
+                existing_entries = [item for item in existing if isinstance(item, dict)]
+        except Exception:
+            logger.warning("Failed to parse existing manifest; rebuilding")
+
+    merged: dict[int, dict] = {}
+    for item in existing_entries:
+        case_id = item.get("case_id")
+        if case_id is None:
+            continue
+        merged[int(case_id)] = item
+
+    for item in entries:
+        case_id = item.get("case_id")
+        if case_id is None:
+            continue
+        merged[int(case_id)] = item
+
+    sorted_entries = [merged[key] for key in sorted(merged.keys())]
     with output_path.open("w", encoding="utf-8") as file:
-        json.dump(entries, file, indent=2)
+        json.dump(sorted_entries, file, indent=2)
 
 
 if __name__ == "__main__":

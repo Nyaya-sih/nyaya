@@ -1,15 +1,17 @@
 """Tests for retrieval evaluation metrics helpers."""
 
 import importlib.util
+from importlib.machinery import ModuleSpec
 from pathlib import Path
+from typing import cast
 
 
 MODULE_PATH = (
     Path(__file__).resolve().parents[1] / "scripts" / "17_eval_retrieval_quality.py"
 )
 SPEC = importlib.util.spec_from_file_location("eval_retrieval_quality", MODULE_PATH)
-MODULE = importlib.util.module_from_spec(SPEC)
 assert SPEC is not None and SPEC.loader is not None
+MODULE = importlib.util.module_from_spec(cast(ModuleSpec, SPEC))
 SPEC.loader.exec_module(MODULE)
 
 
@@ -45,3 +47,10 @@ def test_evaluate_uses_offline_retrieved_case_ids_only():
     assert report["queries_evaluated"] == 2
     assert report["metrics"]["precision_at_10"] > 0.0
     assert report["metrics"]["recall_at_20"] > 0.0
+
+
+def test_parse_args_with_max_queries(monkeypatch):
+    """Evaluation CLI should parse max query limit."""
+    monkeypatch.setattr("sys.argv", ["prog", "--max-queries", "25"])
+    args = MODULE.parse_args()
+    assert args.max_queries == 25

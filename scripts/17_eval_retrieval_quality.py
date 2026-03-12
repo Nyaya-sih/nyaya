@@ -29,6 +29,7 @@ Output report: data/processed/retrieval_eval_report.json
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 from pathlib import Path
@@ -99,6 +100,18 @@ def load_eval_dataset(path: Path) -> list[dict[str, Any]]:
             continue
         records.append(json.loads(line))
     return records
+
+
+def parse_args() -> argparse.Namespace:
+    """Parse CLI arguments for evaluation run."""
+    parser = argparse.ArgumentParser(description="Evaluate retrieval quality")
+    parser.add_argument(
+        "--max-queries",
+        type=int,
+        default=0,
+        help="Evaluate at most N queries (0 means all)",
+    )
+    return parser.parse_args()
 
 
 def fetch_retrieved_case_ids(record: dict[str, Any], client: httpx.Client) -> list[int]:
@@ -208,9 +221,12 @@ def ensure_template_eval_file(path: Path) -> None:
 
 def main() -> None:
     """Run retrieval quality evaluation and write report."""
+    args = parse_args()
     eval_path = Path("data/evals/similar_cases_gold.jsonl")
     ensure_template_eval_file(eval_path)
     records = load_eval_dataset(eval_path)
+    if args.max_queries and args.max_queries > 0:
+        records = records[: args.max_queries]
     report = evaluate(records)
 
     output_path = Path("data/processed/retrieval_eval_report.json")
