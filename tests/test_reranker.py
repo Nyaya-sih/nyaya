@@ -2,6 +2,7 @@
 
 import numpy as np
 
+from src.config.settings import settings
 from src.features.similar_cases.reranker import CrossEncoderReranker
 
 
@@ -15,8 +16,8 @@ class DummyModel:
 class DummyCandidate:
     """Dummy candidate wrapper."""
 
-    def __init__(self, score):
-        self.case_id = 1
+    def __init__(self, score, case_id=1):
+        self.case_id = case_id
         self.case_title = "Title"
         self.court = "Court"
         self.date_of_judgment = "2024-01-01"
@@ -34,7 +35,9 @@ class DummyCandidate:
 
 def test_rerank_returns_ranked_results(monkeypatch):
     """Output is RankedResult list."""
-    monkeypatch.setattr("src.features.similar_cases.reranker.CrossEncoder", lambda *_: DummyModel())
+    monkeypatch.setattr(
+        "src.features.similar_cases.reranker.CrossEncoder", lambda *_: DummyModel()
+    )
     reranker = CrossEncoderReranker()
     results = reranker.rerank("query", [DummyCandidate(0.9)], top_k=1)
     assert len(results) == 1
@@ -42,7 +45,9 @@ def test_rerank_returns_ranked_results(monkeypatch):
 
 def test_rerank_sorted_by_combined_score(monkeypatch):
     """Results in descending order."""
-    monkeypatch.setattr("src.features.similar_cases.reranker.CrossEncoder", lambda *_: DummyModel())
+    monkeypatch.setattr(
+        "src.features.similar_cases.reranker.CrossEncoder", lambda *_: DummyModel()
+    )
     reranker = CrossEncoderReranker()
     candidates = [DummyCandidate(0.1), DummyCandidate(0.9)]
     results = reranker.rerank("query", candidates, top_k=2)
@@ -51,7 +56,9 @@ def test_rerank_sorted_by_combined_score(monkeypatch):
 
 def test_rerank_respects_top_k(monkeypatch):
     """Returns exactly top_k results."""
-    monkeypatch.setattr("src.features.similar_cases.reranker.CrossEncoder", lambda *_: DummyModel())
+    monkeypatch.setattr(
+        "src.features.similar_cases.reranker.CrossEncoder", lambda *_: DummyModel()
+    )
     reranker = CrossEncoderReranker()
     candidates = [DummyCandidate(0.1), DummyCandidate(0.2), DummyCandidate(0.3)]
     results = reranker.rerank("query", candidates, top_k=2)
@@ -60,7 +67,9 @@ def test_rerank_respects_top_k(monkeypatch):
 
 def test_build_candidate_text_handles_none(monkeypatch):
     """None payload fields -> no crash."""
-    monkeypatch.setattr("src.features.similar_cases.reranker.CrossEncoder", lambda *_: DummyModel())
+    monkeypatch.setattr(
+        "src.features.similar_cases.reranker.CrossEncoder", lambda *_: DummyModel()
+    )
     reranker = CrossEncoderReranker()
     candidate_text = reranker._build_candidate_text({"case_title": None})
     assert isinstance(candidate_text, str)
@@ -68,9 +77,37 @@ def test_build_candidate_text_handles_none(monkeypatch):
 
 def test_scores_normalized_0_to_1(monkeypatch):
     """All normalized scores in [0, 1]."""
-    monkeypatch.setattr("src.features.similar_cases.reranker.CrossEncoder", lambda *_: DummyModel())
+    monkeypatch.setattr(
+        "src.features.similar_cases.reranker.CrossEncoder", lambda *_: DummyModel()
+    )
     reranker = CrossEncoderReranker()
     candidates = [DummyCandidate(0.1), DummyCandidate(0.2)]
     results = reranker.rerank("query", candidates, top_k=2)
     for result in results:
         assert 0.0 <= result.rerank_score <= 1.0
+
+
+def test_weights_are_normalized_from_settings(monkeypatch):
+    """Configured reranker weights are normalized to sum to 1."""
+    monkeypatch.setattr(
+        "src.features.similar_cases.reranker.CrossEncoder", lambda *_: DummyModel()
+    )
+    monkeypatch.setattr(settings, "reranker_vector_weight", 3.0)
+    monkeypatch.setattr(settings, "reranker_model_weight", 7.0)
+    reranker = CrossEncoderReranker()
+    assert reranker.vector_weight == 0.3
+    assert reranker.rerank_weight == 0.7
+
+
+def test_tie_break_is_deterministic(monkeypatch):
+    """Equal combined scores should use stable case_id tie-break."""
+    monkeypatch.setattr(
+        "src.features.similar_cases.reranker.CrossEncoder", lambda *_: DummyModel()
+    )
+    monkeypatch.setattr(settings, "reranker_vector_weight", 0.5)
+    monkeypatch.setattr(settings, "reranker_model_weight", 0.5)
+    reranker = CrossEncoderReranker()
+
+    candidates = [DummyCandidate(0.4, case_id=10), DummyCandidate(0.4, case_id=5)]
+    results = reranker.rerank("query", candidates, top_k=2)
+    assert [item.case_id for item in results] == [5, 10]

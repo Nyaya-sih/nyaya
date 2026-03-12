@@ -12,10 +12,12 @@ from typing import Any, Optional
 
 import numpy as np
 from loguru import logger
+from src.config.settings import settings
 
 # Optional import for sentence-transformers (not needed if reranking is disabled)
 try:
     from sentence_transformers import CrossEncoder
+
     SENTENCE_TRANSFORMERS_AVAILABLE = True
 except ImportError:
     CrossEncoder = None
@@ -42,8 +44,8 @@ class CrossEncoderReranker:
     """Cross-encoder reranker for top candidates."""
 
     MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-    VECTOR_WEIGHT = 0.3
-    RERANK_WEIGHT = 0.7
+    DEFAULT_VECTOR_WEIGHT = 0.3
+    DEFAULT_RERANK_WEIGHT = 0.7
 
     def __init__(self) -> None:
         """Load cross-encoder model on init. Log loading status."""
@@ -52,8 +54,25 @@ class CrossEncoderReranker:
                 "sentence-transformers is not installed. "
                 "Install with: pip install sentence-transformers"
             )
+        if CrossEncoder is None:
+            raise ImportError("CrossEncoder is unavailable")
         logger.info("Loading cross-encoder model", model=self.MODEL_NAME)
         self.model = CrossEncoder(self.MODEL_NAME)
+        vector_weight = float(settings.reranker_vector_weight)
+        rerank_weight = float(settings.reranker_model_weight)
+        total_weight = vector_weight + rerank_weight
+        if total_weight <= 0:
+            logger.warning(
+                "Invalid reranker weights configured; falling back to defaults",
+                vector_weight=vector_weight,
+                rerank_weight=rerank_weight,
+            )
+            vector_weight = self.DEFAULT_VECTOR_WEIGHT
+            rerank_weight = self.DEFAULT_RERANK_WEIGHT
+            total_weight = vector_weight + rerank_weight
+
+        self.vector_weight = vector_weight / total_weight
+        self.rerank_weight = rerank_weight / total_weight
         logger.info("Cross-encoder model loaded", model=self.MODEL_NAME)
 
     def _build_query_text(self, query_text: str) -> str:
@@ -105,10 +124,7 @@ class CrossEncoderReranker:
         return text[:800]
 
     def rerank(
-        self,
-        query_text: str,
-        candidates: list,
-        top_k: int = 10
+        self, query_text: str, candidates: list, top_k: int = 10
     ) -> list[RankedResult]:
         """Rerank candidates using cross-encoder.
 
@@ -145,10 +161,9 @@ class CrossEncoderReranker:
 
         ranked = []
         for candidate, rerank_score in zip(candidates, normalized):
-            combined = (
-                self.VECTOR_WEIGHT * float(candidate.similarity_score)
-                + self.RERANK_WEIGHT * float(rerank_score)
-            )
+            combined = self.vector_weight * float(
+                candidate.similarity_score
+            ) + self.rerank_weight * float(rerank_score)
             ranked.append(
                 RankedResult(
                     case_id=candidate.case_id,
@@ -164,5 +179,12 @@ class CrossEncoderReranker:
                 )
             )
 
-        ranked.sort(key=lambda item: item.combined_score, reverse=True)
+        ranked.sort(
+            key=lambda item: (
+                -item.combined_score,
+                -item.rerank_score,
+                -item.vector_score,
+                item.case_id,
+            )
+        )
         return ranked[:top_k]

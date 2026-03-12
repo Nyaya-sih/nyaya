@@ -1,10 +1,18 @@
 """Tests for SimilarCaseSearchEngine."""
 
+from typing import Any, cast
+
 import numpy as np
 
 from src.config.settings import settings
-from src.features.similar_cases.search_engine import SimilarCaseSearchEngine, SearchFilters
-from src.features.similar_cases.similarity_analyzer import SimilarityExplanation, SimilarityDimension
+from src.features.similar_cases.search_engine import (
+    SimilarCaseSearchEngine,
+    SearchFilters,
+)
+from src.features.similar_cases.similarity_analyzer import (
+    SimilarityExplanation,
+    SimilarityDimension,
+)
 from src.features.similar_cases.vector_store import SearchResult
 
 
@@ -21,19 +29,26 @@ class DummyVectorStore:
     COLLECTION_COMBINED = "combined"
     COLLECTION_FACTUAL = "factual"
     COLLECTION_LEGAL = "legal"
+    COLLECTION_FULLTEXT = "fulltext"
 
     def __init__(self):
         self.last_params = None
+        self.fulltext_exists = False
 
     def search(self, **kwargs):
         self.last_params = kwargs
         return []
 
+    def collection_exists(self, name: str) -> bool:
+        return self.fulltext_exists and name == self.COLLECTION_FULLTEXT
+
 
 class DummySimilarityAnalyzer:
     """Dummy similarity analyzer."""
 
-    def compute_rule_based_similarity(self, query_payload, candidate_payload, vector_score):
+    def compute_rule_based_similarity(
+        self, query_payload, candidate_payload, vector_score
+    ):
         return SimilarityExplanation(
             overall_score=0.5,
             dimensions=[SimilarityDimension(name="Statutory", score=0.5, reason="")],
@@ -48,11 +63,12 @@ class DummySimilarityAnalyzer:
 
 def _build_engine() -> SimilarCaseSearchEngine:
     engine = SimilarCaseSearchEngine.__new__(SimilarCaseSearchEngine)
-    engine.embedding_generator = DummyEmbeddingGenerator()
-    engine.vector_store = DummyVectorStore()
-    engine.reranker = None
-    engine.similarity_analyzer = DummySimilarityAnalyzer()
-    return engine
+    engine_any = cast(Any, engine)
+    engine_any.embedding_generator = DummyEmbeddingGenerator()
+    engine_any.vector_store = DummyVectorStore()
+    engine_any.reranker = None
+    engine_any.similarity_analyzer = DummySimilarityAnalyzer()
+    return cast(SimilarCaseSearchEngine, engine_any)
 
 
 def test_extract_query_metadata_criminal():
@@ -96,6 +112,59 @@ def test_search_filters_passed_correctly(monkeypatch):
     """Filters reach vector store."""
     engine = _build_engine()
     monkeypatch.setattr(settings, "enable_reranking", False)
-    filters = SearchFilters(court="Delhi High Court", case_type="Criminal", year_from=2020, year_to=2024)
+    filters = SearchFilters(
+        court="Delhi High Court", case_type="Criminal", year_from=2020, year_to=2024
+    )
     engine.search("query text", filters=filters, top_k=5)
-    assert engine.vector_store.last_params["court_filter"] == "Delhi High Court"
+    store = cast(DummyVectorStore, engine.vector_store)
+    assert store.last_params is not None
+    assert store.last_params["court_filter"] == "Delhi High Court"
+
+
+def test_search_mode_maps_to_factual_collection(monkeypatch):
+    """Factual mode uses factual collection."""
+    engine = _build_engine()
+    monkeypatch.setattr(settings, "enable_reranking", False)
+    monkeypatch.setattr(settings, "enable_fulltext_search", False)
+    filters = SearchFilters(similarity_mode="factual")
+    engine.search("criminal appeal before high court", filters=filters, top_k=5)
+    store = cast(DummyVectorStore, engine.vector_store)
+    assert store.last_params is not None
+    assert store.last_params["collection"] == store.COLLECTION_FACTUAL
+
+
+def test_search_mode_maps_to_legal_collection(monkeypatch):
+    """Legal mode uses legal collection."""
+    engine = _build_engine()
+    monkeypatch.setattr(settings, "enable_reranking", False)
+    monkeypatch.setattr(settings, "enable_fulltext_search", False)
+    filters = SearchFilters(similarity_mode="legal")
+    engine.search("section 302 ipc and crpc proceedings", filters=filters, top_k=5)
+    store = cast(DummyVectorStore, engine.vector_store)
+    assert store.last_params is not None
+    assert store.last_params["collection"] == store.COLLECTION_LEGAL
+
+
+def test_invalid_mode_falls_back_to_combined(monkeypatch):
+    """Unknown mode should fallback to combined collection."""
+    engine = _build_engine()
+    monkeypatch.setattr(settings, "enable_reranking", False)
+    monkeypatch.setattr(settings, "enable_fulltext_search", False)
+    filters = SearchFilters(similarity_mode="unknown")
+    engine.search("criminal appeal before high court", filters=filters, top_k=5)
+    store = cast(DummyVectorStore, engine.vector_store)
+    assert store.last_params is not None
+    assert store.last_params["collection"] == store.COLLECTION_COMBINED
+
+
+def test_combined_mode_prefers_fulltext_when_available(monkeypatch):
+    """Combined mode should use fulltext collection if enabled and available."""
+    engine = _build_engine()
+    store = cast(DummyVectorStore, engine.vector_store)
+    store.fulltext_exists = True
+    monkeypatch.setattr(settings, "enable_reranking", False)
+    monkeypatch.setattr(settings, "enable_fulltext_search", True)
+    filters = SearchFilters(similarity_mode="combined")
+    engine.search("criminal appeal before high court", filters=filters, top_k=5)
+    assert store.last_params is not None
+    assert store.last_params["collection"] == store.COLLECTION_FULLTEXT
