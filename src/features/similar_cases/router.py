@@ -12,7 +12,7 @@ Endpoints:
 
 from pathlib import Path
 import tempfile
-from typing import Optional
+from typing import Optional, Literal
 
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
@@ -22,7 +22,10 @@ from sqlalchemy.orm import Session
 from src.config.settings import settings
 from src.api.dependencies import get_search_engine, get_db_session
 from src.database.models import Case
-from src.features.similar_cases.search_engine import SimilarCaseSearchEngine, SearchFilters
+from src.features.similar_cases.search_engine import (
+    SimilarCaseSearchEngine,
+    SearchFilters,
+)
 from src.utils.document_processor import DocumentProcessor
 
 
@@ -39,7 +42,9 @@ class TextSearchRequest(BaseModel):
     year_to: Optional[int] = Field(None, ge=1950, le=2025)
     verdict: Optional[str] = None
     top_k: int = Field(settings.default_top_k, ge=1, le=20)
-    similarity_mode: str = Field("combined")
+    similarity_mode: Literal["combined", "factual", "legal", "fulltext"] = Field(
+        "combined"
+    )
 
 
 class SimilarityDimensionResponse(BaseModel):
@@ -89,7 +94,7 @@ class ExplainRequest(BaseModel):
 @router.post("/similar", response_model=SearchResponse)
 def search_similar_cases(
     request: TextSearchRequest,
-    search_engine: SimilarCaseSearchEngine = Depends(get_search_engine)
+    search_engine: SimilarCaseSearchEngine = Depends(get_search_engine),
 ) -> SearchResponse:
     """Search for similar cases using plain text.
 
@@ -118,11 +123,13 @@ def search_similar_cases_upload(
     file: UploadFile = File(...),
     court: Optional[str] = Form(None),
     case_type: Optional[str] = Form(None),
-    year_from: Optional[int] = Form(None),
-    year_to: Optional[int] = Form(None),
+    year_from: Optional[int] = Form(None, ge=1950, le=2025),
+    year_to: Optional[int] = Form(None, ge=1950, le=2025),
     verdict: Optional[str] = Form(None),
-    top_k: int = Form(settings.default_top_k),
-    similarity_mode: str = Form("combined"),
+    top_k: int = Form(settings.default_top_k, ge=1, le=20),
+    similarity_mode: Literal["combined", "factual", "legal", "fulltext"] = Form(
+        "combined"
+    ),
     search_engine: SimilarCaseSearchEngine = Depends(get_search_engine),
 ) -> SearchResponse:
     """Search for similar cases using uploaded PDF or DOCX.
@@ -143,7 +150,9 @@ def search_similar_cases_upload(
     """
     extension = Path(file.filename).suffix.lower() if file.filename else ""
     if extension not in {".pdf", ".docx"}:
-        raise HTTPException(status_code=400, detail="Only PDF and DOCX files are supported.")
+        raise HTTPException(
+            status_code=400, detail="Only PDF and DOCX files are supported."
+        )
 
     temp_path = None
     try:
@@ -154,7 +163,9 @@ def search_similar_cases_upload(
         processor = DocumentProcessor()
         extracted_text = processor.extract_text(temp_path)
         if len(extracted_text.strip()) < 100:
-            raise HTTPException(status_code=400, detail="Extracted text is too short for search.")
+            raise HTTPException(
+                status_code=400, detail="Extracted text is too short for search."
+            )
 
         filters = SearchFilters(
             court=court,
@@ -170,7 +181,9 @@ def search_similar_cases_upload(
         raise
     except Exception as exc:
         logger.error("Upload search failed", error=str(exc))
-        raise HTTPException(status_code=500, detail="Failed to process uploaded document.")
+        raise HTTPException(
+            status_code=500, detail="Failed to process uploaded document."
+        )
     finally:
         if temp_path and temp_path.exists():
             temp_path.unlink(missing_ok=True)
@@ -178,8 +191,7 @@ def search_similar_cases_upload(
 
 @router.get("/{case_id}")
 def get_case_details(
-    case_id: int,
-    db_session: Session = Depends(get_db_session)
+    case_id: int, db_session: Session = Depends(get_db_session)
 ) -> dict:
     """Get full case details by ID.
 
@@ -198,7 +210,9 @@ def get_case_details(
         "case_id": case.id,
         "case_title": case.case_title,
         "court": case.court,
-        "date_of_judgment": case.date_of_judgment.isoformat() if case.date_of_judgment else None,
+        "date_of_judgment": case.date_of_judgment.isoformat()
+        if case.date_of_judgment
+        else None,
         "case_type": case.case_type,
         "verdict": case.verdict,
         "statutes_cited": _get_statute_names(case),
@@ -228,7 +242,9 @@ def get_case_details(
 def get_similar_to_case(
     case_id: int,
     top_k: int = Query(settings.default_top_k, ge=1, le=20),
-    similarity_mode: str = Query("combined"),
+    similarity_mode: Literal["combined", "factual", "legal", "fulltext"] = Query(
+        "combined"
+    ),
     search_engine: SimilarCaseSearchEngine = Depends(get_search_engine),
     db_session: Session = Depends(get_db_session),
 ) -> SearchResponse:
@@ -248,18 +264,24 @@ def get_similar_to_case(
     if not case:
         raise HTTPException(status_code=404, detail="Case not found.")
 
-    query_text = "\n".join([
-        case.case_title or "",
-        case.key_arguments_petitioner or "",
-        case.key_arguments_respondent or "",
-        case.court_reasoning or "",
-    ]).strip()
+    query_text = "\n".join(
+        [
+            case.case_title or "",
+            case.key_arguments_petitioner or "",
+            case.key_arguments_respondent or "",
+            case.court_reasoning or "",
+        ]
+    ).strip()
 
     if len(query_text) < 100:
-        raise HTTPException(status_code=400, detail="Insufficient case text for similarity search.")
+        raise HTTPException(
+            status_code=400, detail="Insufficient case text for similarity search."
+        )
 
     filters = SearchFilters(similarity_mode=similarity_mode)
-    response = search_engine.search(query_text, filters=filters, top_k=top_k, exclude_case_id=case_id)
+    response = search_engine.search(
+        query_text, filters=filters, top_k=top_k, exclude_case_id=case_id
+    )
     return _convert_search_response(response)
 
 
@@ -302,9 +324,7 @@ def explain_similarity(
 
 
 @router.get("/search/filters")
-def get_search_filters(
-    db_session: Session = Depends(get_db_session)
-) -> dict:
+def get_search_filters(db_session: Session = Depends(get_db_session)) -> dict:
     """Get filter options for UI dropdowns.
 
     Args:
@@ -313,12 +333,25 @@ def get_search_filters(
     Returns:
         Dictionary with filter options.
     """
-    courts = sorted({row[0] for row in db_session.query(Case.court).distinct().all() if row[0]})
-    case_types = sorted({row[0] for row in db_session.query(Case.case_type).distinct().all() if row[0]})
-    verdicts = sorted({row[0] for row in db_session.query(Case.verdict).distinct().all() if row[0]})
+    courts = sorted(
+        {row[0] for row in db_session.query(Case.court).distinct().all() if row[0]}
+    )
+    case_types = sorted(
+        {row[0] for row in db_session.query(Case.case_type).distinct().all() if row[0]}
+    )
+    verdicts = sorted(
+        {row[0] for row in db_session.query(Case.verdict).distinct().all() if row[0]}
+    )
 
-    years = [row[0].year for row in db_session.query(Case.date_of_judgment).distinct().all() if row[0]]
-    year_range = {"min": min(years) if years else None, "max": max(years) if years else None}
+    years = [
+        row[0].year
+        for row in db_session.query(Case.date_of_judgment).distinct().all()
+        if row[0]
+    ]
+    year_range = {
+        "min": min(years) if years else None,
+        "max": max(years) if years else None,
+    }
 
     return {
         "courts": courts,
