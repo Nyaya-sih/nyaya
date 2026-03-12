@@ -53,10 +53,7 @@ class SimilarityAnalyzer:
         self.llm_client = llm_client
 
     def compute_rule_based_similarity(
-        self,
-        query_payload: dict,
-        candidate_payload: dict,
-        vector_score: float
+        self, query_payload: dict, candidate_payload: dict, vector_score: float
     ) -> SimilarityExplanation:
         """Compute rule-based similarity across 5 dimensions.
 
@@ -82,14 +79,22 @@ class SimilarityAnalyzer:
         Returns:
             SimilarityExplanation object.
         """
-        query_statutes = set((query_payload.get("statutes_cited") or []) + (query_payload.get("sections_invoked") or []))
-        candidate_statutes = set((candidate_payload.get("statutes_cited") or []) + (candidate_payload.get("sections_invoked") or []))
+        query_statutes = self._normalize_legal_terms(
+            (query_payload.get("statutes_cited") or [])
+            + (query_payload.get("sections_invoked") or [])
+        )
+        candidate_statutes = self._normalize_legal_terms(
+            (candidate_payload.get("statutes_cited") or [])
+            + (candidate_payload.get("sections_invoked") or [])
+        )
 
-        statutory_score, common_statutes = self._jaccard_score(query_statutes, candidate_statutes)
+        statutory_score, common_statutes = self._jaccard_score(
+            query_statutes, candidate_statutes
+        )
         statutory_dim = SimilarityDimension(
             name="Statutory",
             score=statutory_score,
-            reason=self._statutory_reason(common_statutes)
+            reason=self._statutory_reason(common_statutes),
         )
 
         query_case_type = (query_payload.get("case_type") or "").strip()
@@ -98,7 +103,7 @@ class SimilarityAnalyzer:
         case_type_dim = SimilarityDimension(
             name="Case Type",
             score=case_type_score,
-            reason=self._case_type_reason(query_case_type, candidate_case_type)
+            reason=self._case_type_reason(query_case_type, candidate_case_type),
         )
 
         query_court = (query_payload.get("court") or "").strip()
@@ -107,17 +112,21 @@ class SimilarityAnalyzer:
         court_dim = SimilarityDimension(
             name="Court",
             score=court_score,
-            reason=self._court_reason(query_court, candidate_court)
+            reason=self._court_reason(query_court, candidate_court),
         )
 
         query_verdict = (query_payload.get("verdict") or "").strip()
         candidate_verdict = (candidate_payload.get("verdict") or "").strip()
-        verdict_match = self._verdict_category(query_verdict) == self._verdict_category(candidate_verdict)
-        outcome_score = 1.0 if verdict_match and query_verdict and candidate_verdict else 0.0
+        verdict_match = self._verdict_category(query_verdict) == self._verdict_category(
+            candidate_verdict
+        )
+        outcome_score = (
+            1.0 if verdict_match and query_verdict and candidate_verdict else 0.0
+        )
         outcome_dim = SimilarityDimension(
             name="Outcome",
             score=outcome_score,
-            reason=self._outcome_reason(query_verdict, candidate_verdict)
+            reason=self._outcome_reason(query_verdict, candidate_verdict),
         )
 
         query_year = query_payload.get("year")
@@ -126,7 +135,7 @@ class SimilarityAnalyzer:
         temporal_dim = SimilarityDimension(
             name="Temporal",
             score=temporal_score,
-            reason=self._temporal_reason(query_year, candidate_year)
+            reason=self._temporal_reason(query_year, candidate_year),
         )
 
         weights = {
@@ -144,32 +153,68 @@ class SimilarityAnalyzer:
             + temporal_dim.score * weights["Temporal"]
         )
 
-        overall_score = 0.5 * float(vector_score) + 0.5 * float(weighted_dimension_score)
-        short_explanation = self._short_explanation(common_statutes, query_case_type, candidate_case_type, query_court, candidate_court)
-        detailed_explanation = self._detailed_explanation([
-            statutory_dim,
-            case_type_dim,
-            court_dim,
-            outcome_dim,
-            temporal_dim,
-        ])
+        overall_score = 0.5 * float(vector_score) + 0.5 * float(
+            weighted_dimension_score
+        )
+        short_explanation = self._short_explanation(
+            common_statutes,
+            query_case_type,
+            candidate_case_type,
+            query_court,
+            candidate_court,
+        )
+        detailed_explanation = self._detailed_explanation(
+            [
+                statutory_dim,
+                case_type_dim,
+                court_dim,
+                outcome_dim,
+                temporal_dim,
+            ]
+        )
 
         return SimilarityExplanation(
             overall_score=overall_score,
-            dimensions=[statutory_dim, case_type_dim, court_dim, outcome_dim, temporal_dim],
+            dimensions=[
+                statutory_dim,
+                case_type_dim,
+                court_dim,
+                outcome_dim,
+                temporal_dim,
+            ],
             common_statutes=sorted(list(common_statutes)),
-            common_case_type=query_case_type.lower() == candidate_case_type.lower() if query_case_type and candidate_case_type else False,
-            common_court=query_court == candidate_court if query_court and candidate_court else False,
+            common_case_type=(
+                query_case_type.lower() == candidate_case_type.lower()
+                if query_case_type and candidate_case_type
+                else False
+            ),
+            common_court=self._is_same_court(query_court, candidate_court),
             verdict_match=verdict_match,
             short_explanation=short_explanation,
             detailed_explanation=detailed_explanation,
         )
 
+    def _normalize_legal_terms(self, terms: list[str]) -> set[str]:
+        """Normalize statutes/sections for overlap computation."""
+        normalized = set()
+        for term in terms:
+            if not term:
+                continue
+            text = " ".join(str(term).strip().split()).upper()
+            if text:
+                normalized.add(text)
+        return normalized
+
+    def _is_same_court(self, query_court: str, candidate_court: str) -> bool:
+        """Determine court equality using normalized court tokens."""
+        if not query_court or not candidate_court:
+            return False
+        return self._normalize_court_name(query_court) == self._normalize_court_name(
+            candidate_court
+        )
+
     def generate_llm_explanation(
-        self,
-        query_case_text: str,
-        candidate_payload: dict,
-        similarity_score: float
+        self, query_case_text: str, candidate_payload: dict, similarity_score: float
     ) -> str:
         """On-demand LLM explanation for a specific case pair.
 
@@ -215,7 +260,10 @@ class SimilarityAnalyzer:
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": prompt},
-                    {"role": "user", "content": f"Query Case Text:\n{query_case_text}\n\n{candidate_summary}"},
+                    {
+                        "role": "user",
+                        "content": f"Query Case Text:\n{query_case_text}\n\n{candidate_summary}",
+                    },
                 ],
                 temperature=0.2,
                 max_tokens=400,
@@ -239,7 +287,10 @@ class SimilarityAnalyzer:
             return 0.0
         if query_type.lower() == candidate_type.lower():
             return 1.0
-        if query_type.lower() in candidate_type.lower() or candidate_type.lower() in query_type.lower():
+        if (
+            query_type.lower() in candidate_type.lower()
+            or candidate_type.lower() in query_type.lower()
+        ):
             return 0.5
         return 0.0
 
@@ -324,18 +375,26 @@ class SimilarityAnalyzer:
         """Build outcome reasoning string."""
         if not query_verdict or not candidate_verdict:
             return "Outcome not specified for comparison."
-        if self._verdict_category(query_verdict) == self._verdict_category(candidate_verdict):
-            return f"Both cases fall under similar outcome category ({candidate_verdict})."
+        if self._verdict_category(query_verdict) == self._verdict_category(
+            candidate_verdict
+        ):
+            return (
+                f"Both cases fall under similar outcome category ({candidate_verdict})."
+            )
         return f"Different outcomes: {query_verdict} vs {candidate_verdict}."
 
-    def _temporal_score(self, query_year: Optional[int], candidate_year: Optional[int]) -> float:
+    def _temporal_score(
+        self, query_year: Optional[int], candidate_year: Optional[int]
+    ) -> float:
         """Compute temporal proximity score."""
         if not query_year or not candidate_year:
             return 0.0
         year_diff = abs(int(query_year) - int(candidate_year))
         return max(0.0, 1.0 - (year_diff / 10.0))
 
-    def _temporal_reason(self, query_year: Optional[int], candidate_year: Optional[int]) -> str:
+    def _temporal_reason(
+        self, query_year: Optional[int], candidate_year: Optional[int]
+    ) -> str:
         """Build temporal reasoning string."""
         if not query_year or not candidate_year:
             return "Year information not available for both cases."
@@ -359,11 +418,16 @@ class SimilarityAnalyzer:
         """Build a short similarity explanation."""
         parts = []
         if common_statutes:
-            parts.append(f"Both involve {', '.join(sorted(common_statutes))}.")
-        if query_case_type and candidate_case_type and query_case_type.lower() == candidate_case_type.lower():
+            top_terms = sorted(common_statutes)[:3]
+            parts.append(f"Both involve {', '.join(top_terms)}.")
+        if (
+            query_case_type
+            and candidate_case_type
+            and query_case_type.lower() == candidate_case_type.lower()
+        ):
             parts.append(f"Both are {query_case_type} cases.")
-        if query_court and candidate_court and query_court == candidate_court:
-            parts.append(f"Same court: {query_court}.")
+        if self._is_same_court(query_court, candidate_court):
+            parts.append(f"Same court: {candidate_court}.")
         if not parts:
             parts.append("Similarity based on combined factual and legal signals.")
         return " ".join(parts)
@@ -373,5 +437,7 @@ class SimilarityAnalyzer:
         lines = ["### Similarity Breakdown"]
         for dimension in dimensions:
             stars = "*" * int(round(dimension.score * 5))
-            lines.append(f"- **{dimension.name}**: {dimension.score:.2f} ({stars}) - {dimension.reason}")
+            lines.append(
+                f"- **{dimension.name}**: {dimension.score:.2f} ({stars}) - {dimension.reason}"
+            )
         return "\n".join(lines)
