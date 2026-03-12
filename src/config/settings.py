@@ -60,7 +60,7 @@ class Settings(BaseSettings):
         default=True, description="Enable on-demand LLM explanations"
     )
     enable_query_llm_metadata: bool = Field(
-        default=True,
+        default=False,
         description="Enable lightweight LLM metadata extraction for queries",
     )
     query_metadata_model: str = Field(
