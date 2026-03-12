@@ -42,10 +42,36 @@ def main() -> None:
         logger.error("No sample payload available for benchmarking")
         return
 
+    filter_heavy_payload = {
+        **payload,
+        "top_k": 10,
+        "similarity_mode": "combined",
+        "court": "High Court of Delhi",
+        "case_type": "Criminal",
+        "year_from": 2018,
+        "year_to": 2025,
+    }
+    long_text_payload = {
+        **payload,
+        "top_k": 5,
+        "text": (payload.get("text", "") + "\n") * 3,
+    }
+
     results = {
         "cold_start": _run_cold_start(payload),
-        "warm_requests": _run_warm_requests(payload),
-        "concurrent_requests": asyncio.run(_run_concurrent_requests(payload)),
+        "warm_requests_default": _run_warm_requests(payload),
+        "warm_requests_filter_heavy": _run_warm_requests(
+            filter_heavy_payload, total_requests=50
+        ),
+        "warm_requests_long_text": _run_warm_requests(
+            long_text_payload, total_requests=30
+        ),
+        "concurrent_requests_default": asyncio.run(
+            _run_concurrent_requests(payload, concurrent_requests=10)
+        ),
+        "concurrent_requests_filter_heavy": asyncio.run(
+            _run_concurrent_requests(filter_heavy_payload, concurrent_requests=8)
+        ),
     }
 
     output_path = Path("data/processed/benchmark_results.json")
@@ -95,7 +121,7 @@ def _run_cold_start(payload: dict) -> dict:
     }
 
 
-def _run_warm_requests(payload: dict) -> dict:
+def _run_warm_requests(payload: dict, total_requests: int = 100) -> dict:
     """Run warm sequential benchmark.
 
     Args:
@@ -109,7 +135,7 @@ def _run_warm_requests(payload: dict) -> dict:
 
     with httpx.Client(timeout=60) as client:
         start = time.time()
-        for _ in range(100):
+        for _ in range(total_requests):
             request_start = time.time()
             response = client.post(API_URL, json=payload)
             latencies.append((time.time() - request_start) * 1000)
@@ -117,10 +143,14 @@ def _run_warm_requests(payload: dict) -> dict:
                 errors += 1
         total_time = time.time() - start
 
-    return _summarize_latencies(latencies, total_time, errors, total_requests=100)
+    return _summarize_latencies(
+        latencies, total_time, errors, total_requests=total_requests
+    )
 
 
-async def _run_concurrent_requests(payload: dict) -> dict:
+async def _run_concurrent_requests(
+    payload: dict, concurrent_requests: int = 10
+) -> dict:
     """Run concurrent benchmark with 10 simultaneous requests.
 
     Args:
@@ -131,16 +161,15 @@ async def _run_concurrent_requests(payload: dict) -> dict:
     """
     async with httpx.AsyncClient(timeout=60) as client:
         start = time.time()
-        tasks = [
-            _timed_post(client, payload)
-            for _ in range(10)
-        ]
+        tasks = [_timed_post(client, payload) for _ in range(concurrent_requests)]
         results = await asyncio.gather(*tasks)
         total_time = time.time() - start
 
     latencies = [result[0] for result in results]
     errors = sum(1 for result in results if result[1] != 200)
-    return _summarize_latencies(latencies, total_time, errors, total_requests=10)
+    return _summarize_latencies(
+        latencies, total_time, errors, total_requests=concurrent_requests
+    )
 
 
 async def _timed_post(client: httpx.AsyncClient, payload: dict) -> tuple[float, int]:
@@ -158,7 +187,9 @@ async def _timed_post(client: httpx.AsyncClient, payload: dict) -> tuple[float, 
     return (time.time() - start) * 1000, response.status_code
 
 
-def _summarize_latencies(latencies: list, total_time: float, errors: int, total_requests: int) -> dict:
+def _summarize_latencies(
+    latencies: list, total_time: float, errors: int, total_requests: int
+) -> dict:
     """Summarize latency stats.
 
     Args:
