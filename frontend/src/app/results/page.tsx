@@ -66,6 +66,8 @@ export default function ResultsPage() {
   const progress = useMemo(() => ((stepIndex + 1) / SEARCH_STEPS.length) * 100, [stepIndex]);
 
   const effectiveResponse = response ?? responseFromStore;
+  const effectiveWarnings = effectiveResponse?.warnings ?? [];
+  const effectiveMode = effectiveResponse?.retrieval_mode ?? "full";
   const queryForExplain = effectiveResponse?.query_summary ?? queryText;
   const loading = shouldFetch && (isLoading || (isFetching && !response));
 
@@ -73,7 +75,7 @@ export default function ResultsPage() {
     <Container className="space-y-6 pb-20 pt-10">
       {loading && (
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
-          <p className="text-sm text-[var(--neutral-600)]">Searching 9,718 cases...</p>
+          <p className="text-sm text-[var(--neutral-600)]">Searching case index...</p>
           <div className="mt-4 space-y-2 text-xs text-[var(--neutral-500)]">
             {SEARCH_STEPS.map((step, index) => (
               <div key={step} className="flex items-center gap-2">
@@ -94,6 +96,22 @@ export default function ResultsPage() {
       {effectiveResponse && !loading && (
         <>
           <ResultsHeader response={effectiveResponse} />
+          {effectiveMode !== "full" && (
+            <div className="rounded-xl border border-[var(--accent-400)]/30 bg-[var(--accent-400)]/10 p-4 text-sm text-[var(--neutral-700)]">
+              Search executed in <strong>{effectiveMode}</strong> mode.
+              Results may be less precise than full mode.
+            </div>
+          )}
+          {effectiveWarnings.length > 0 && (
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-alt)] p-4 text-sm text-[var(--neutral-700)]">
+              <p className="font-semibold text-[var(--primary-900)]">Search warnings</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5">
+                {effectiveWarnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <LegalDisclaimer text={effectiveResponse.disclaimer} />
           <div className="grid gap-4">
             {effectiveResponse.results.length ? (

@@ -12,11 +12,14 @@ export function SimilarityModeSelect() {
         { label: "Combined", value: "combined" },
         { label: "Factual", value: "factual" },
         { label: "Legal", value: "legal" },
+        { label: "Full Text", value: "fulltext" },
       ].map((item) => (
         <button
           key={item.value}
           type="button"
-          onClick={() => setSimilarityMode(item.value as "combined" | "factual" | "legal")}
+          onClick={() =>
+            setSimilarityMode(item.value as "combined" | "factual" | "legal" | "fulltext")
+          }
           className={`rounded-full border px-4 py-1 ${
             similarityMode === item.value
               ? "border-[var(--primary-700)] bg-[var(--primary-700)] text-white"
