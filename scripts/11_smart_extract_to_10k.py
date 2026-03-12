@@ -6,6 +6,7 @@ Extracts from diverse courts PDFs until we hit 10,000 total.
 
 import sys
 from pathlib import Path
+
 sys.path.append(str(Path(__file__).parent.parent))
 
 from src.database.models import Case
@@ -20,6 +21,7 @@ import argparse
 
 TARGET_CASES = 10000
 
+
 def get_current_count():
     """Get current number of cases in database"""
     db = DatabaseLoader()
@@ -30,52 +32,81 @@ def get_current_count():
     finally:
         session.close()
 
+
 def get_unprocessed_pdfs():
     """Find PDFs that haven't been processed yet"""
     diverse_dir = Path("data/raw/diverse_courts")
+    high_courts_dir = Path("data/raw/high_courts")
 
     # Get all PDF files
-    all_pdfs = list(diverse_dir.rglob("*.pdf"))
+    all_pdfs = list(diverse_dir.rglob("*.pdf")) + list(high_courts_dir.rglob("*.pdf"))
+    # Deduplicate by filename to avoid repeated work across folders
+    deduped_by_name = {}
+    for pdf_path in all_pdfs:
+        deduped_by_name.setdefault(pdf_path.name, pdf_path)
+    all_pdfs = list(deduped_by_name.values())
     logger.info(f"Found {len(all_pdfs)} total PDF files")
 
     # Get already processed filenames from database
     db = DatabaseLoader()
     session = db.SessionLocal()
     try:
-        processed = session.query(Case.source_file_path).filter(Case.source_file_path.isnot(None)).all()
+        processed = (
+            session.query(Case.source_file_path)
+            .filter(Case.source_file_path.isnot(None))
+            .all()
+        )
+        existing_case_ids = {
+            c[0]
+            for c in session.query(Case.case_id).filter(Case.case_id.isnot(None)).all()
+        }
         processed_paths = {str(Path(p[0]).name) for p in processed if p[0]}
         logger.info(f"Already processed: {len(processed_paths)} files")
+        logger.info(f"Existing case_ids: {len(existing_case_ids)}")
     finally:
         session.close()
 
     # Filter unprocessed
-    unprocessed = [p for p in all_pdfs if p.name not in processed_paths]
+    unprocessed = [
+        p
+        for p in all_pdfs
+        if p.name not in processed_paths and p.stem not in existing_case_ids
+    ]
     logger.info(f"Unprocessed PDFs: {len(unprocessed)}")
 
     return unprocessed
 
-def extract_single_case(pdf_path, pdf_extractor, metadata_extractor, validator, db_loader):
+
+def extract_single_case(
+    pdf_path, pdf_extractor, metadata_extractor, validator, db_loader
+):
     """Extract and load a single case"""
     try:
         # Extract text (returns a dict)
         extraction_result = pdf_extractor.extract_text(pdf_path)
 
-        if not extraction_result or not extraction_result.get('success'):
+        if not extraction_result or not extraction_result.get("success"):
             logger.warning(f"Failed to extract text from {pdf_path.name}")
             return False
 
-        text = extraction_result.get('text', '')
-        page_count = extraction_result.get('page_count', 0)
+        text = extraction_result.get("text", "")
+        page_count = extraction_result.get("page_count", 0)
 
         if not text or len(text.strip()) < 100:
             logger.warning(f"Insufficient text extracted from {pdf_path.name}")
             return False
 
         # Extract metadata
-        metadata = metadata_extractor.extract_case_metadata(text)
+        metadata = metadata_extractor.extract_case_metadata(
+            judgment_text=text,
+            case_id=pdf_path.stem,
+        )
         if not metadata:
             logger.warning(f"Failed to extract metadata from {pdf_path.name}")
             return False
+
+        # Enforce deterministic case ID from filename for duplicate prevention
+        metadata.case_id = pdf_path.stem
 
         # Validate
         validation = validator.validate(metadata)
@@ -87,7 +118,7 @@ def extract_single_case(pdf_path, pdf_extractor, metadata_extractor, validator, 
             validation=validation,
             extraction_model="gpt-4o-mini",
             source_file=str(pdf_path),
-            page_count=page_count
+            page_count=page_count,
         )
 
         if case_id:
@@ -99,25 +130,31 @@ def extract_single_case(pdf_path, pdf_extractor, metadata_extractor, validator, 
 
     except Exception as e:
         import traceback
+
         logger.error(f"Error processing {pdf_path.name}: {e}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         return False
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Smart extraction to 10,000 cases')
-    parser.add_argument('--target', type=int, default=TARGET_CASES, help='Target number of cases')
+    parser = argparse.ArgumentParser(description="Smart extraction to 10,000 cases")
+    parser.add_argument(
+        "--target", type=int, default=TARGET_CASES, help="Target number of cases"
+    )
     args = parser.parse_args()
 
-    logger.info("="*60)
+    logger.info("=" * 60)
     logger.info("SMART EXTRACTION TO 10,000 CASES")
-    logger.info("="*60)
+    logger.info("=" * 60)
 
     # Check current count
     current_count = get_current_count()
     logger.info(f"Current cases in database: {current_count:,}")
 
     if current_count >= args.target:
-        logger.success(f"Already have {current_count:,} cases (target: {args.target:,})")
+        logger.success(
+            f"Already have {current_count:,} cases (target: {args.target:,})"
+        )
         logger.success("Nothing to do!")
         return
 
@@ -139,7 +176,7 @@ def main():
 
     # Confirm
     response = input(f"\nProceed with extraction? (yes/no): ")
-    if response.lower() != 'yes':
+    if response.lower() != "yes":
         logger.warning("Extraction cancelled")
         return
 
@@ -164,7 +201,9 @@ def main():
                 break
 
             # Process
-            if extract_single_case(pdf_path, pdf_extractor, metadata_extractor, validator, db_loader):
+            if extract_single_case(
+                pdf_path, pdf_extractor, metadata_extractor, validator, db_loader
+            ):
                 successful += 1
                 pbar.update(1)
             else:
@@ -179,9 +218,9 @@ def main():
     # Final report
     final_count = get_current_count()
 
-    logger.info("\n" + "="*60)
+    logger.info("\n" + "=" * 60)
     logger.success("EXTRACTION COMPLETE")
-    logger.info("="*60)
+    logger.info("=" * 60)
     logger.info(f"Started with:        {current_count:,} cases")
     logger.info(f"Successfully added:  {successful:,} cases")
     logger.info(f"Failed:              {failed:,} cases")
@@ -192,11 +231,14 @@ def main():
         logger.success(f"\n🎉 TARGET ACHIEVED! {final_count:,} cases")
     else:
         shortfall = args.target - final_count
-        logger.warning(f"\n⚠️  Short by {shortfall:,} cases. May need more PDFs or retry failed ones.")
+        logger.warning(
+            f"\n⚠️  Short by {shortfall:,} cases. May need more PDFs or retry failed ones."
+        )
 
     # Cost estimate
     cost = successful * 0.00035
     logger.info(f"\nEstimated cost: ${cost:.2f}")
+
 
 if __name__ == "__main__":
     main()

@@ -3,6 +3,7 @@ Configuration management using Pydantic Settings.
 Loads configuration from environment variables and .env file.
 """
 from typing import List
+import json
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -35,6 +36,62 @@ class Settings(BaseSettings):
     # Qdrant Configuration
     qdrant_host: str = "localhost"
     qdrant_port: int = 6333
+
+    # Similar Case Retrieval
+    default_top_k: int = Field(
+        default=10,
+        ge=1,
+        le=50,
+        description="Default number of results for similarity search"
+    )
+    vector_search_candidates: int = Field(
+        default=50,
+        ge=10,
+        le=200,
+        description="Number of vector candidates before reranking"
+    )
+    similarity_threshold: float = Field(
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+        description="Minimum similarity score to include in results"
+    )
+    enable_reranking: bool = Field(
+        default=True,
+        description="Enable cross-encoder reranking"
+    )
+    enable_llm_explanation: bool = Field(
+        default=True,
+        description="Enable on-demand LLM explanations"
+    )
+    enable_query_llm_metadata: bool = Field(
+        default=True,
+        description="Enable lightweight LLM metadata extraction for queries"
+    )
+    query_metadata_model: str = Field(
+        default="gpt-4o-mini",
+        description="Model to use for query metadata extraction"
+    )
+    enable_fulltext_search: bool = Field(
+        default=True,
+        description="Prefer full-text-lite collection when available"
+    )
+
+    # API Configuration
+    api_host: str = Field(
+        default="0.0.0.0",
+        description="API host"
+    )
+    api_port: int = Field(
+        default=8000,
+        ge=1,
+        le=65535,
+        description="API port"
+    )
+    cors_origins: List[str] = Field(
+        default=["http://localhost:3000"],
+        description="Allowed CORS origins"
+    )
 
     # AWS S3 Configuration (Public Bucket)
     s3_bucket_name: str = "indian-high-court-judgments"
@@ -129,6 +186,36 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return [int(y.strip()) for y in v.split(",") if y.strip()]
         return v
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v):
+        """Parse comma-separated CORS origins."""
+        if isinstance(v, str):
+            text = v.strip()
+            if text.startswith("["):
+                try:
+                    parsed = json.loads(text)
+                    if isinstance(parsed, list):
+                        return [str(origin).strip() for origin in parsed if str(origin).strip()]
+                except json.JSONDecodeError:
+                    return [origin.strip() for origin in text.split(",") if origin.strip()]
+            return [origin.strip() for origin in text.split(",") if origin.strip()]
+        return v
+
+    @field_validator(
+        "enable_reranking",
+        "enable_llm_explanation",
+        "enable_query_llm_metadata",
+        "enable_fulltext_search",
+        mode="before",
+    )
+    @classmethod
+    def parse_bool(cls, v):
+        """Parse boolean values from env vars."""
+        if isinstance(v, str):
+            return v.strip().lower() in {"1", "true", "yes", "y", "on"}
+        return bool(v)
 
     @field_validator("log_level")
     @classmethod

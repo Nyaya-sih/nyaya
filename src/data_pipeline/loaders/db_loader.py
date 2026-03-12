@@ -1,6 +1,7 @@
 """
 Database loader for saving extracted case data to PostgreSQL.
 """
+
 from typing import List, Optional
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -49,7 +50,7 @@ class DatabaseLoader:
         validation: ValidationResult,
         extraction_model: str,
         source_file: str,
-        page_count: Optional[int] = None
+        page_count: Optional[int] = None,
     ) -> Optional[int]:
         """
         Load a single case into the database.
@@ -78,17 +79,19 @@ class DatabaseLoader:
 
             # Create Case object
             case = Case(
-                case_id=metadata.case_id,
-                case_title=metadata.case_title,
-                court=metadata.court,
+                case_id=self._truncate(metadata.case_id, 255),
+                case_title=self._truncate(metadata.case_title, 500),
+                court=self._truncate(metadata.court, 255),
                 bench=metadata.bench if metadata.bench else None,
                 date_of_judgment=metadata.date_of_judgment,
-                case_type=metadata.case_type,
+                case_type=self._truncate(metadata.case_type, 100),
                 petitioner=metadata.petitioner if metadata.petitioner else None,
                 respondent=metadata.respondent if metadata.respondent else None,
-                sections_invoked=metadata.sections_invoked if metadata.sections_invoked else None,
+                sections_invoked=metadata.sections_invoked
+                if metadata.sections_invoked
+                else None,
                 charges=metadata.charges if metadata.charges else None,
-                verdict=metadata.verdict,
+                verdict=self._truncate(metadata.verdict, 100),
                 sentence=metadata.sentence,
                 key_arguments_petitioner=metadata.key_arguments_petitioner,
                 key_arguments_respondent=metadata.key_arguments_respondent,
@@ -97,12 +100,14 @@ class DatabaseLoader:
                 full_text=full_text,
                 confidence_scores=metadata.confidence_scores,
                 average_confidence=metadata.get_average_confidence(),
-                extraction_model=extraction_model,
+                extraction_model=self._truncate(extraction_model, 100),
                 validation_status=validation_status,
                 validation_errors=validation.errors if validation.errors else None,
-                validation_warnings=validation.warnings if validation.warnings else None,
-                source_file_path=source_file,
-                page_count=page_count
+                validation_warnings=validation.warnings
+                if validation.warnings
+                else None,
+                source_file_path=self._truncate(source_file, 500),
+                page_count=page_count,
             )
 
             # Add case to session
@@ -118,15 +123,54 @@ class DatabaseLoader:
             # Add precedents
             if metadata.precedents_cited:
                 for prec_data in metadata.precedents_cited:
-                    precedent = self._get_or_create_precedent(
-                        session,
-                        prec_data.case_name,
-                        prec_data.citation,
-                        prec_data.year,
-                        prec_data.court,
-                        prec_data.legal_principle
-                    )
-                    case.precedents.append(precedent)
+                    try:
+                        if hasattr(prec_data, "case_name"):
+                            case_name = prec_data.case_name
+                            citation = prec_data.citation
+                            year = prec_data.year
+                            court = prec_data.court
+                            legal_principle = prec_data.legal_principle
+                        elif isinstance(prec_data, dict):
+                            case_name = prec_data.get("case_name")
+                            citation = prec_data.get("citation")
+                            year = prec_data.get("year")
+                            court = prec_data.get("court")
+                            legal_principle = prec_data.get("legal_principle")
+                        elif isinstance(prec_data, str):
+                            case_name = prec_data
+                            citation = None
+                            year = None
+                            court = None
+                            legal_principle = None
+                        else:
+                            logger.warning(
+                                "Skipping unsupported precedent entry",
+                                case_id=metadata.case_id,
+                            )
+                            continue
+
+                        if not case_name:
+                            logger.warning(
+                                "Skipping precedent without case_name",
+                                case_id=metadata.case_id,
+                            )
+                            continue
+
+                        precedent = self._get_or_create_precedent(
+                            session,
+                            str(case_name),
+                            citation,
+                            year,
+                            court,
+                            legal_principle,
+                        )
+                        case.precedents.append(precedent)
+                    except Exception as e:
+                        logger.warning(
+                            "Skipping invalid precedent entry",
+                            case_id=metadata.case_id,
+                            error=str(e),
+                        )
 
             session.commit()
 
@@ -134,14 +178,18 @@ class DatabaseLoader:
                 f"Case loaded successfully",
                 case_id=metadata.case_id,
                 db_id=case.id,
-                validation_status=validation_status
+                validation_status=validation_status,
             )
 
             return case.id
 
         except IntegrityError as e:
             session.rollback()
-            logger.warning(f"Case already exists or integrity error", case_id=metadata.case_id, error=str(e))
+            logger.warning(
+                f"Case already exists or integrity error",
+                case_id=metadata.case_id,
+                error=str(e),
+            )
             return None
 
         except Exception as e:
@@ -151,6 +199,16 @@ class DatabaseLoader:
 
         finally:
             session.close()
+
+    @staticmethod
+    def _truncate(value: Optional[str], max_len: int) -> Optional[str]:
+        """Trim string fields to DB column length to avoid insertion failures."""
+        if value is None:
+            return None
+        value = str(value)
+        if len(value) <= max_len:
+            return value
+        return value[:max_len]
 
     def _get_or_create_statute(self, session: Session, statute_name: str) -> Statute:
         """
@@ -179,7 +237,7 @@ class DatabaseLoader:
         citation: Optional[str],
         year: Optional[int],
         court: Optional[str],
-        legal_principle: Optional[str]
+        legal_principle: Optional[str],
     ) -> Precedent:
         """
         Get existing precedent or create new one.
@@ -195,6 +253,12 @@ class DatabaseLoader:
         Returns:
             Precedent object
         """
+        case_name = self._truncate(case_name, 500) or "Unknown Precedent"
+        citation = self._truncate(citation.strip() if citation else None, 255)
+        if citation == "":
+            citation = None
+        court = self._truncate(court, 255)
+
         # Try to find by citation first (most unique)
         if citation:
             precedent = session.query(Precedent).filter_by(citation=citation).first()
@@ -207,7 +271,7 @@ class DatabaseLoader:
             citation=citation,
             year=year,
             court=court,
-            legal_principle=legal_principle
+            legal_principle=legal_principle,
         )
         session.add(precedent)
         session.flush()
@@ -231,7 +295,7 @@ class DatabaseLoader:
             "successful": 0,
             "failed": 0,
             "duplicates": 0,
-            "case_ids": []
+            "case_ids": [],
         }
 
         for result in extraction_results:
@@ -241,7 +305,7 @@ class DatabaseLoader:
                 validation=result.validation,
                 extraction_model=result.extraction_model,
                 source_file=result.source_file,
-                page_count=result.page_count
+                page_count=result.page_count,
             )
 
             if case_id is not None:
@@ -257,7 +321,7 @@ class DatabaseLoader:
             total=stats["total"],
             successful=stats["successful"],
             failed=stats["failed"],
-            duplicates=stats["duplicates"]
+            duplicates=stats["duplicates"],
         )
 
         return stats
@@ -279,7 +343,9 @@ class DatabaseLoader:
         finally:
             session.close()
 
-    def get_cases_by_validation_status(self, status: str, limit: int = 100) -> List[Case]:
+    def get_cases_by_validation_status(
+        self, status: str, limit: int = 100
+    ) -> List[Case]:
         """
         Get cases by validation status.
 
@@ -292,7 +358,12 @@ class DatabaseLoader:
         """
         session = self.SessionLocal()
         try:
-            cases = session.query(Case).filter_by(validation_status=status).limit(limit).all()
+            cases = (
+                session.query(Case)
+                .filter_by(validation_status=status)
+                .limit(limit)
+                .all()
+            )
             return cases
         finally:
             session.close()
@@ -307,14 +378,21 @@ class DatabaseLoader:
         session = self.SessionLocal()
         try:
             total_cases = session.query(Case).count()
-            valid_cases = session.query(Case).filter_by(validation_status="valid").count()
-            needs_review = session.query(Case).filter_by(validation_status="needs_review").count()
-            invalid_cases = session.query(Case).filter_by(validation_status="invalid").count()
+            valid_cases = (
+                session.query(Case).filter_by(validation_status="valid").count()
+            )
+            needs_review = (
+                session.query(Case).filter_by(validation_status="needs_review").count()
+            )
+            invalid_cases = (
+                session.query(Case).filter_by(validation_status="invalid").count()
+            )
             total_statutes = session.query(Statute).count()
             total_precedents = session.query(Precedent).count()
 
             # Average confidence
             from sqlalchemy import func
+
             avg_conf = session.query(func.avg(Case.average_confidence)).scalar() or 0.0
 
             return {
@@ -324,7 +402,7 @@ class DatabaseLoader:
                 "invalid_cases": invalid_cases,
                 "total_statutes": total_statutes,
                 "total_precedents": total_precedents,
-                "average_confidence": float(avg_conf)
+                "average_confidence": float(avg_conf),
             }
         finally:
             session.close()
