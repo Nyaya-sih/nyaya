@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+import httpx
 from loguru import logger
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
@@ -174,7 +175,15 @@ def main() -> None:
         }
     except Exception as exc:
         qdrant_error = str(exc)
-        logger.warning("Failed to read Qdrant stats", error=qdrant_error)
+        logger.warning(
+            "Failed to read Qdrant stats via client; retrying with HTTP",
+            error=qdrant_error,
+        )
+        qdrant_counts, http_error = _fetch_qdrant_counts_via_http()
+        if http_error:
+            qdrant_error = f"client_error={qdrant_error}; http_error={http_error}"
+        else:
+            qdrant_error = None
 
     manifest_path = Path("data/processed/embedding_manifest.json")
     manifest_stats = load_manifest_stats(manifest_path)
@@ -207,6 +216,33 @@ def main() -> None:
         path=str(output_path),
         status=integrity["status"],
     )
+
+
+def _fetch_qdrant_counts_via_http() -> tuple[dict[str, int], str | None]:
+    """Fetch collection counts via Qdrant HTTP API as compatibility fallback."""
+    api_host = (
+        settings.qdrant_host
+        if settings.qdrant_host not in {"0.0.0.0", "qdrant"}
+        else "127.0.0.1"
+    )
+    base = f"http://{api_host}:{settings.qdrant_port}"
+    collections = {
+        "combined": "nyaya_cases_combined",
+        "factual": "nyaya_cases_factual",
+        "legal": "nyaya_cases_legal",
+        "fulltext": "nyaya_cases_fulltext",
+    }
+    counts = {key: 0 for key in collections}
+    try:
+        with httpx.Client(timeout=20) as client:
+            for key, name in collections.items():
+                response = client.get(f"{base}/collections/{name}")
+                response.raise_for_status()
+                payload = response.json()
+                counts[key] = int(payload.get("result", {}).get("points_count") or 0)
+    except Exception as exc:
+        return counts, str(exc)
+    return counts, None
 
 
 if __name__ == "__main__":

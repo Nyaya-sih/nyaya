@@ -1,13 +1,15 @@
 """Tests for benchmark search metrics summarization."""
 
 import importlib.util
+from importlib.machinery import ModuleSpec
 from pathlib import Path
+from typing import cast
 
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "15_benchmark_search.py"
 SPEC = importlib.util.spec_from_file_location("benchmark_search", MODULE_PATH)
-MODULE = importlib.util.module_from_spec(SPEC)
 assert SPEC is not None and SPEC.loader is not None
+MODULE = importlib.util.module_from_spec(cast(ModuleSpec, SPEC))
 SPEC.loader.exec_module(MODULE)
 
 
@@ -35,3 +37,11 @@ def test_summarize_latencies_handles_empty():
     )
     assert stats["p50_ms"] == 0.0
     assert stats["throughput_rps"] == 0.0
+
+
+def test_parse_args_quick_mode(monkeypatch):
+    """Benchmark script should parse quick mode flag."""
+    monkeypatch.setattr("sys.argv", ["prog", "--quick", "--warm-default", "25"])
+    args = MODULE.parse_args()
+    assert args.quick is True
+    assert args.warm_default == 25

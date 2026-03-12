@@ -17,6 +17,7 @@ Usage: Run this with the API already running on localhost:8000
 """
 
 import asyncio
+import argparse
 import json
 import time
 from pathlib import Path
@@ -35,8 +36,26 @@ API_HOST = settings.api_host if settings.api_host != "0.0.0.0" else "localhost"
 API_URL = f"http://{API_HOST}:{settings.api_port}/api/v1/cases/similar"
 
 
+def parse_args() -> argparse.Namespace:
+    """Parse benchmark configuration arguments."""
+    parser = argparse.ArgumentParser(description="Benchmark similar-case search API")
+    parser.add_argument("--warm-default", type=int, default=100)
+    parser.add_argument("--warm-filter", type=int, default=50)
+    parser.add_argument("--warm-long", type=int, default=30)
+    parser.add_argument("--concurrent-default", type=int, default=10)
+    parser.add_argument("--concurrent-filter", type=int, default=8)
+    parser.add_argument("--request-timeout", type=int, default=60)
+    parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Run a much smaller benchmark set for rapid gate checks",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
     """Run API performance benchmarks."""
+    args = parse_args()
     payload = _build_payload()
     if not payload:
         logger.error("No sample payload available for benchmarking")
@@ -57,20 +76,44 @@ def main() -> None:
         "text": (payload.get("text", "") + "\n") * 3,
     }
 
+    if args.quick:
+        args.warm_default = min(args.warm_default, 10)
+        args.warm_filter = min(args.warm_filter, 6)
+        args.warm_long = min(args.warm_long, 4)
+        args.concurrent_default = min(args.concurrent_default, 4)
+        args.concurrent_filter = min(args.concurrent_filter, 3)
+        args.request_timeout = min(args.request_timeout, 30)
+
     results = {
-        "cold_start": _run_cold_start(payload),
-        "warm_requests_default": _run_warm_requests(payload),
+        "cold_start": _run_cold_start(payload, request_timeout=args.request_timeout),
+        "warm_requests_default": _run_warm_requests(
+            payload,
+            total_requests=args.warm_default,
+            request_timeout=args.request_timeout,
+        ),
         "warm_requests_filter_heavy": _run_warm_requests(
-            filter_heavy_payload, total_requests=50
+            filter_heavy_payload,
+            total_requests=args.warm_filter,
+            request_timeout=args.request_timeout,
         ),
         "warm_requests_long_text": _run_warm_requests(
-            long_text_payload, total_requests=30
+            long_text_payload,
+            total_requests=args.warm_long,
+            request_timeout=args.request_timeout,
         ),
         "concurrent_requests_default": asyncio.run(
-            _run_concurrent_requests(payload, concurrent_requests=10)
+            _run_concurrent_requests(
+                payload,
+                concurrent_requests=args.concurrent_default,
+                request_timeout=args.request_timeout,
+            )
         ),
         "concurrent_requests_filter_heavy": asyncio.run(
-            _run_concurrent_requests(filter_heavy_payload, concurrent_requests=8)
+            _run_concurrent_requests(
+                filter_heavy_payload,
+                concurrent_requests=args.concurrent_filter,
+                request_timeout=args.request_timeout,
+            )
         ),
     }
 
@@ -100,7 +143,7 @@ def _build_payload() -> dict:
         session.close()
 
 
-def _run_cold_start(payload: dict) -> dict:
+def _run_cold_start(payload: dict, request_timeout: int = 60) -> dict:
     """Run cold start benchmark.
 
     Args:
@@ -109,7 +152,7 @@ def _run_cold_start(payload: dict) -> dict:
     Returns:
         Benchmark stats.
     """
-    with httpx.Client(timeout=60) as client:
+    with httpx.Client(timeout=request_timeout) as client:
         start = time.time()
         response = client.post(API_URL, json=payload)
         elapsed = (time.time() - start) * 1000
@@ -121,7 +164,9 @@ def _run_cold_start(payload: dict) -> dict:
     }
 
 
-def _run_warm_requests(payload: dict, total_requests: int = 100) -> dict:
+def _run_warm_requests(
+    payload: dict, total_requests: int = 100, request_timeout: int = 60
+) -> dict:
     """Run warm sequential benchmark.
 
     Args:
@@ -133,7 +178,7 @@ def _run_warm_requests(payload: dict, total_requests: int = 100) -> dict:
     latencies = []
     errors = 0
 
-    with httpx.Client(timeout=60) as client:
+    with httpx.Client(timeout=request_timeout) as client:
         start = time.time()
         for _ in range(total_requests):
             request_start = time.time()
@@ -149,7 +194,7 @@ def _run_warm_requests(payload: dict, total_requests: int = 100) -> dict:
 
 
 async def _run_concurrent_requests(
-    payload: dict, concurrent_requests: int = 10
+    payload: dict, concurrent_requests: int = 10, request_timeout: int = 60
 ) -> dict:
     """Run concurrent benchmark with 10 simultaneous requests.
 
@@ -159,7 +204,7 @@ async def _run_concurrent_requests(
     Returns:
         Benchmark stats.
     """
-    async with httpx.AsyncClient(timeout=60) as client:
+    async with httpx.AsyncClient(timeout=request_timeout) as client:
         start = time.time()
         tasks = [_timed_post(client, payload) for _ in range(concurrent_requests)]
         results = await asyncio.gather(*tasks)
