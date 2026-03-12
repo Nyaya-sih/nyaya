@@ -1,6 +1,7 @@
 """API contract tests for similar-case retrieval routes."""
 
 from dataclasses import dataclass
+from typing import Optional
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -28,13 +29,13 @@ class DummyResult:
     combined_score: float = 0.88
     vector_score: float = 0.82
     rerank_score: float = 0.92
-    statutes_cited: list[str] = None
-    sections_invoked: list[str] = None
+    statutes_cited: Optional[list[str]] = None
+    sections_invoked: Optional[list[str]] = None
     key_arguments_petitioner: str = ""
     key_arguments_respondent: str = ""
     court_reasoning: str = ""
-    headnotes: list[str] = None
-    similarity_explanation: SimilarityExplanation = None
+    headnotes: Optional[list[str]] = None
+    similarity_explanation: Optional[SimilarityExplanation] = None
 
 
 @dataclass
@@ -47,6 +48,8 @@ class DummyResponse:
     results: list
     filters_applied: dict
     disclaimer: str
+    retrieval_mode: str = "full"
+    warnings: Optional[list[str]] = None
 
 
 class DummySearchEngine:
@@ -86,6 +89,8 @@ class DummySearchEngine:
             results=[result],
             filters_applied={"similarity_mode": filters.similarity_mode},
             disclaimer="decision support",
+            retrieval_mode="full",
+            warnings=[],
         )
 
 
@@ -136,6 +141,8 @@ def test_text_search_contract_shape_and_filter_mapping():
     assert body["total_results"] == 1
     assert body["results"][0]["case_id"] == 101
     assert body["results"][0]["dimensions"][0]["name"] == "Statutory"
+    assert body["retrieval_mode"] == "full"
+    assert isinstance(body["warnings"], list)
     assert engine.last_filters is not None
     assert engine.last_filters.similarity_mode == "factual"
     assert engine.last_top_k == 3

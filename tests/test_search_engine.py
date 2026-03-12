@@ -34,10 +34,11 @@ class DummyVectorStore:
     def __init__(self):
         self.last_params = None
         self.fulltext_exists = False
+        self.next_results = []
 
     def search(self, **kwargs):
         self.last_params = kwargs
-        return []
+        return list(self.next_results)
 
     def collection_exists(self, name: str) -> bool:
         return self.fulltext_exists and name == self.COLLECTION_FULLTEXT
@@ -168,3 +169,65 @@ def test_combined_mode_prefers_fulltext_when_available(monkeypatch):
     engine.search("criminal appeal before high court", filters=filters, top_k=5)
     assert store.last_params is not None
     assert store.last_params["collection"] == store.COLLECTION_FULLTEXT
+
+
+def test_search_reports_degraded_mode_when_reranker_missing(monkeypatch):
+    """Should flag degraded mode when reranking enabled but unavailable."""
+    engine = _build_engine()
+    store = cast(DummyVectorStore, engine.vector_store)
+    store.next_results = [
+        SearchResult(
+            case_id=10,
+            case_title="Case A",
+            court="High Court of Delhi",
+            date_of_judgment="2023-01-01",
+            case_type="Criminal",
+            verdict="Convicted",
+            similarity_score=0.8,
+            payload={"statutes_cited": ["IPC"], "sections_invoked": ["Section 302"]},
+        )
+    ]
+
+    monkeypatch.setattr(settings, "enable_reranking", True)
+    response = engine.search(
+        "criminal appeal high court section 302 ipc text",
+        filters=SearchFilters(),
+        top_k=5,
+    )
+    assert response.retrieval_mode == "degraded"
+    assert response.warnings
+    assert response.total_results == 1
+
+
+def test_search_falls_back_when_reranker_raises(monkeypatch):
+    """Reranker errors should fallback to vector ranking and warn."""
+
+    class ExplodingReranker:
+        def rerank(self, query_text, candidates, top_k=10):
+            raise RuntimeError("boom")
+
+    engine = _build_engine()
+    store = cast(DummyVectorStore, engine.vector_store)
+    store.next_results = [
+        SearchResult(
+            case_id=11,
+            case_title="Case B",
+            court="High Court of Delhi",
+            date_of_judgment="2023-01-02",
+            case_type="Criminal",
+            verdict="Convicted",
+            similarity_score=0.77,
+            payload={"statutes_cited": ["IPC"], "sections_invoked": ["Section 302"]},
+        )
+    ]
+    cast(Any, engine).reranker = ExplodingReranker()
+
+    monkeypatch.setattr(settings, "enable_reranking", True)
+    response = engine.search(
+        "criminal appeal high court section 302 ipc text",
+        filters=SearchFilters(),
+        top_k=5,
+    )
+    assert response.retrieval_mode == "degraded"
+    assert any("Reranker" in warning for warning in response.warnings)
+    assert response.total_results == 1

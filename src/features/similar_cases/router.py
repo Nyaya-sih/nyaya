@@ -82,6 +82,8 @@ class SearchResponse(BaseModel):
     results: list[SimilarCaseResponse]
     filters_applied: dict
     disclaimer: str
+    retrieval_mode: str
+    warnings: list[str] = Field(default_factory=list)
 
 
 class ExplainRequest(BaseModel):
@@ -405,6 +407,8 @@ def _convert_search_response(response) -> SearchResponse:
         results=results,
         filters_applied=response.filters_applied,
         disclaimer=response.disclaimer,
+        retrieval_mode=getattr(response, "retrieval_mode", "full"),
+        warnings=list(getattr(response, "warnings", []) or []),
     )
 
 

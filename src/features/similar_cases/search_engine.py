@@ -10,7 +10,7 @@ Full pipeline:
 6. Return SearchResponse with disclaimer
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 import json
 import re
@@ -74,6 +74,8 @@ class SearchResponse:
     results: list[CaseSearchResult]
     filters_applied: dict
     disclaimer: str
+    retrieval_mode: str = "full"
+    warnings: list[str] = field(default_factory=list)
 
 
 class SimilarCaseSearchEngine:
@@ -127,6 +129,8 @@ class SimilarCaseSearchEngine:
         """
         start = time.time()
         filters = filters or SearchFilters()
+        warnings: list[str] = []
+        retrieval_mode = "full"
 
         summarized_text = self._summarize_query_text(query_text)
         query_embedding = self.embedding_generator.generate_query_embedding(
@@ -157,6 +161,8 @@ class SimilarCaseSearchEngine:
                     "The uploaded document does not appear to be a legal judgment or petition. "
                     "Please upload a court document or paste case text for similarity search."
                 ),
+                retrieval_mode="rejected",
+                warnings=warnings,
             )
 
         collection_map = {
@@ -185,18 +191,36 @@ class SimilarCaseSearchEngine:
                         "Full-text collection not found, falling back",
                         collection=collection,
                     )
+                    warnings.append(
+                        "Full-text collection unavailable; using combined embeddings instead."
+                    )
 
-        candidates = self.vector_store.search(
-            query_embedding=query_embedding,
-            top_k=settings.vector_search_candidates,
-            court_filter=filters.court,
-            case_type_filter=filters.case_type,
-            year_from=filters.year_from,
-            year_to=filters.year_to,
-            verdict_filter=filters.verdict,
-            collection=collection,
-            exclude_case_id=exclude_case_id,
-        )
+        try:
+            candidates = self.vector_store.search(
+                query_embedding=query_embedding,
+                top_k=settings.vector_search_candidates,
+                court_filter=filters.court,
+                case_type_filter=filters.case_type,
+                year_from=filters.year_from,
+                year_to=filters.year_to,
+                verdict_filter=filters.verdict,
+                collection=collection,
+                exclude_case_id=exclude_case_id,
+            )
+        except Exception as exc:
+            logger.error("Vector search failed", error=str(exc))
+            warnings.append("Vector search failed; returning no results.")
+            elapsed = (time.time() - start) * 1000
+            return SearchResponse(
+                query_summary=self._build_query_summary(summarized_text, filters),
+                total_results=0,
+                search_time_ms=elapsed,
+                results=[],
+                filters_applied=self._filters_dict(filters),
+                disclaimer=self.DISCLAIMER,
+                retrieval_mode="degraded",
+                warnings=warnings,
+            )
 
         if not candidates:
             elapsed = (time.time() - start) * 1000
@@ -207,12 +231,24 @@ class SimilarCaseSearchEngine:
                 results=[],
                 filters_applied=self._filters_dict(filters),
                 disclaimer=self.DISCLAIMER,
+                retrieval_mode=retrieval_mode,
+                warnings=warnings,
             )
 
         if settings.enable_reranking and self.reranker:
-            ranked_candidates = self.reranker.rerank(
-                summarized_text, candidates, top_k=top_k
-            )
+            try:
+                ranked_candidates = self.reranker.rerank(
+                    summarized_text, candidates, top_k=top_k
+                )
+            except Exception as exc:
+                logger.warning("Reranker failed; using vector ranking", error=str(exc))
+                warnings.append("Reranker unavailable; using vector ranking fallback.")
+                retrieval_mode = "degraded"
+                ranked_candidates = self._wrap_vector_results(candidates, top_k)
+        elif settings.enable_reranking and not self.reranker:
+            warnings.append("Reranker disabled/unavailable; using vector ranking only.")
+            retrieval_mode = "degraded"
+            ranked_candidates = self._wrap_vector_results(candidates, top_k)
         else:
             ranked_candidates = self._wrap_vector_results(candidates, top_k)
 
@@ -265,6 +301,8 @@ class SimilarCaseSearchEngine:
             results=results,
             filters_applied=self._filters_dict(filters),
             disclaimer=self.DISCLAIMER,
+            retrieval_mode=retrieval_mode,
+            warnings=warnings,
         )
 
     def _extract_query_metadata(self, query_text: str) -> dict:
