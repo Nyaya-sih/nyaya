@@ -5,6 +5,7 @@ This script only creates the full-text collection vectors (single embedding per 
 It does NOT regenerate the factual/legal/outcome embeddings.
 """
 
+import argparse
 import time
 from pathlib import Path
 
@@ -19,8 +20,26 @@ from src.features.similar_cases.embedding_generator import EmbeddingGenerator
 from src.features.similar_cases.vector_store import VectorStore
 
 
+def parse_args() -> argparse.Namespace:
+    """Parse CLI args for full-text embedding generation script."""
+    parser = argparse.ArgumentParser(description="Generate full-text-lite embeddings")
+    parser.add_argument(
+        "--yes",
+        action="store_true",
+        help="Skip interactive confirmation prompt",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=50,
+        help="Batch size for embedding and indexing",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
     """Generate and index full-text-lite embeddings for all cases."""
+    args = parse_args()
     logger.info("Full-text embedding generation started")
 
     openai_client = OpenAI(api_key=settings.openai_api_key)
@@ -45,7 +64,9 @@ def main() -> None:
         cases_to_embed = [case for case in cases if case.id not in existing_ids]
         logger.info("Cases to embed", count=len(cases_to_embed))
 
-        estimated_tokens_per_case = _estimate_tokens_per_case(embedding_generator, cases_to_embed)
+        estimated_tokens_per_case = _estimate_tokens_per_case(
+            embedding_generator, cases_to_embed
+        )
         estimated_tokens = estimated_tokens_per_case * len(cases_to_embed)
         estimated_cost = (estimated_tokens / 1_000_000) * 0.13
         estimated_time_minutes = (len(cases_to_embed) * 2) / 60
@@ -57,18 +78,22 @@ def main() -> None:
             estimated_time_minutes=f"{estimated_time_minutes:.1f}",
         )
 
-        proceed = input("Proceed? (yes/no): ").strip().lower()
+        if not args.yes:
+            proceed = input("Proceed? (yes/no): ").strip().lower()
+        else:
+            proceed = "yes"
+
         if proceed != "yes":
             logger.warning("Full-text embedding generation aborted by user")
             return
 
-        batch_size = 50
+        batch_size = max(1, int(args.batch_size))
         embedded_count = 0
         failed_count = 0
 
         start_time = time.time()
         for i in range(0, len(cases_to_embed), batch_size):
-            batch_cases = cases_to_embed[i:i + batch_size]
+            batch_cases = cases_to_embed[i : i + batch_size]
             batch_embeddings = []
             for case in batch_cases:
                 try:
@@ -76,14 +101,20 @@ def main() -> None:
                     batch_embeddings.append(embedding)
                     embedded_count += 1
                 except Exception as exc:
-                    logger.error("Full-text embedding failed", case_id=case.id, error=str(exc))
+                    logger.error(
+                        "Full-text embedding failed", case_id=case.id, error=str(exc)
+                    )
                     failed_count += 1
 
             if batch_embeddings:
-                vector_store.batch_index_fulltext(batch_cases, batch_embeddings, batch_size=batch_size)
+                vector_store.batch_index_fulltext(
+                    batch_cases, batch_embeddings, batch_size=batch_size
+                )
 
             elapsed = time.time() - start_time
-            eta = (elapsed / max(embedded_count, 1)) * (len(cases_to_embed) - embedded_count)
+            eta = (elapsed / max(embedded_count, 1)) * (
+                len(cases_to_embed) - embedded_count
+            )
             logger.info(
                 "Progress",
                 embedded=embedded_count,
