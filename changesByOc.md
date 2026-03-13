@@ -25,3 +25,4 @@ Phase 2 change tracker (one/two-line per iteration).
 21. (current, uncommitted) - Added `scripts/21_generate_human_eval_packets.py` plus tests to build reviewer-ready annotation packets from live `/cases/{id}/similar` results.
 22. (current, uncommitted) - Generated initial annotation packet batch at `data/evals/similar_cases_human_packets.jsonl` and updated the human eval plan with the exact generation command.
 23. (current, uncommitted) - Added `scripts/22_build_human_gold_from_packets.py` and tests to convert labeled annotation packets into `similar_cases_human_gold.jsonl` for graded evaluation runs.
+24. (current, uncommitted) - Added `scripts/23_validate_human_annotations.py` and tests to report annotation completeness/label distribution before converting packets into human-gold eval data.

@@ -51,6 +51,14 @@ PYTHONPATH=. venv/bin/python scripts/22_build_human_gold_from_packets.py --min-j
 
 This writes `data/evals/similar_cases_human_gold.jsonl`, ready for `scripts/17_eval_retrieval_quality.py --eval-file ...`.
 
+Before conversion, validate annotation completeness with:
+
+```bash
+PYTHONPATH=. venv/bin/python scripts/23_validate_human_annotations.py --min-labeled-per-query 3
+```
+
+This writes `data/processed/human_annotation_report.json` with completion ratio, label distribution, and gaps.
+
 Example record:
 
 ```json
