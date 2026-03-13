@@ -21,3 +21,6 @@ Phase 2 change tracker (one/two-line per iteration).
 17. (current, uncommitted) - Focused case query construction on title/headnotes/sections/reasoning/full-text excerpt (reduced noisy argument fields) and expanded API contract tests for new fallback behavior.
 18. (current, uncommitted) - Updated Phase 2 quality SLO/checklist docs to separate heuristic-dataset release gates from stricter human-judged production targets.
 19. (current, uncommitted) - Added a concrete human-judged eval plan doc (sampling, annotation protocol, JSONL schema, graded-metric usage) and linked it from the execution checklist.
+20. (current, uncommitted) - Extended retrieval eval script to support configurable input/output paths and graded human-judgment labels (`judgments` with 0/1/2) for nDCG and relevance metrics.
+21. (current, uncommitted) - Added `scripts/21_generate_human_eval_packets.py` plus tests to build reviewer-ready annotation packets from live `/cases/{id}/similar` results.
+22. (current, uncommitted) - Generated initial annotation packet batch at `data/evals/similar_cases_human_packets.jsonl` and updated the human eval plan with the exact generation command.

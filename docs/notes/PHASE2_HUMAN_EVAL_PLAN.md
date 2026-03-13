@@ -35,6 +35,14 @@ This plan upgrades retrieval quality validation from heuristic labels to human-r
 
 Store as JSONL at `data/evals/similar_cases_human_gold.jsonl`.
 
+Create reviewer packets from current eval set using:
+
+```bash
+PYTHONPATH=. venv/bin/python scripts/21_generate_human_eval_packets.py --queries 150 --top-k 20 --similarity-mode fulltext
+```
+
+This generates `data/evals/similar_cases_human_packets.jsonl` with query context and candidate slots (`label`, `note`) for annotation.
+
 Example record:
 
 ```json

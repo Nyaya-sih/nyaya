@@ -51,6 +51,34 @@ def test_evaluate_uses_offline_retrieved_case_ids_only():
 
 def test_parse_args_with_max_queries(monkeypatch):
     """Evaluation CLI should parse max query limit."""
-    monkeypatch.setattr("sys.argv", ["prog", "--max-queries", "25"])
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "prog",
+            "--max-queries",
+            "25",
+            "--eval-file",
+            "data/evals/custom.jsonl",
+            "--output-file",
+            "data/processed/custom_report.json",
+        ],
+    )
     args = MODULE.parse_args()
     assert args.max_queries == 25
+    assert args.eval_file == "data/evals/custom.jsonl"
+    assert args.output_file == "data/processed/custom_report.json"
+
+
+def test_extract_relevance_supports_human_judgments():
+    """Human judgment labels should map to binary+graded relevance."""
+    record = {
+        "query_id": "h1",
+        "judgments": [
+            {"case_id": 101, "label": 2},
+            {"case_id": 102, "label": 1},
+            {"case_id": 103, "label": 0},
+        ],
+    }
+    binary, graded = MODULE.extract_relevance(record)
+    assert binary == {101, 102}
+    assert graded == {101: 2, 102: 1, 103: 0}

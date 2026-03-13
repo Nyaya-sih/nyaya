@@ -69,24 +69,66 @@ def mrr_at_k(retrieved: list[int], relevant: set[int], k: int) -> float:
     return 0.0
 
 
-def ndcg_at_k(retrieved: list[int], relevant: set[int], k: int) -> float:
-    """Compute binary relevance nDCG@k."""
+def ndcg_at_k(
+    retrieved: list[int],
+    relevant: set[int],
+    k: int,
+    graded_relevance: dict[int, int] | None = None,
+) -> float:
+    """Compute nDCG@k for binary or graded relevance."""
     if k <= 0 or not relevant:
         return 0.0
 
     dcg = 0.0
     for idx, case_id in enumerate(retrieved[:k], start=1):
-        rel = 1.0 if case_id in relevant else 0.0
+        if graded_relevance is None:
+            rel = 1.0 if case_id in relevant else 0.0
+        else:
+            label = float(graded_relevance.get(case_id, 0))
+            rel = (2.0**label) - 1.0 if label > 0 else 0.0
         if rel > 0:
             dcg += rel / math.log2(idx + 1)
 
-    ideal_hits = min(len(relevant), k)
-    if ideal_hits == 0:
-        return 0.0
-    idcg = sum(1.0 / math.log2(idx + 1) for idx in range(1, ideal_hits + 1))
+    if graded_relevance is None:
+        ideal_hits = min(len(relevant), k)
+        if ideal_hits == 0:
+            return 0.0
+        idcg = sum(1.0 / math.log2(idx + 1) for idx in range(1, ideal_hits + 1))
+    else:
+        labels_desc = sorted(graded_relevance.values(), reverse=True)[:k]
+        idcg = 0.0
+        for idx, label in enumerate(labels_desc, start=1):
+            gain = (2.0 ** float(label)) - 1.0 if label > 0 else 0.0
+            idcg += gain / math.log2(idx + 1)
+
     if idcg == 0:
         return 0.0
     return dcg / idcg
+
+
+def extract_relevance(record: dict[str, Any]) -> tuple[set[int], dict[int, int] | None]:
+    """Extract binary and graded relevance labels from an eval record."""
+    judgments = record.get("judgments")
+    if isinstance(judgments, list):
+        graded: dict[int, int] = {}
+        for item in judgments:
+            if not isinstance(item, dict) or "case_id" not in item:
+                continue
+            try:
+                case_id = int(item["case_id"])
+                label = int(item.get("label", 0))
+            except (TypeError, ValueError):
+                continue
+            label = max(0, min(2, label))
+            graded[case_id] = label
+        binary = {case_id for case_id, label in graded.items() if label >= 1}
+        return binary, graded
+
+    binary = {int(case_id) for case_id in record.get("relevant_case_ids", [])}
+    if not binary:
+        return set(), None
+    graded = {case_id: 1 for case_id in binary}
+    return binary, graded
 
 
 def load_eval_dataset(path: Path) -> list[dict[str, Any]]:
@@ -105,6 +147,18 @@ def load_eval_dataset(path: Path) -> list[dict[str, Any]]:
 def parse_args() -> argparse.Namespace:
     """Parse CLI arguments for evaluation run."""
     parser = argparse.ArgumentParser(description="Evaluate retrieval quality")
+    parser.add_argument(
+        "--eval-file",
+        type=str,
+        default="data/evals/similar_cases_gold.jsonl",
+        help="Path to evaluation JSONL file",
+    )
+    parser.add_argument(
+        "--output-file",
+        type=str,
+        default="data/processed/retrieval_eval_report.json",
+        help="Path to write evaluation report JSON",
+    )
     parser.add_argument(
         "--max-queries",
         type=int,
@@ -164,7 +218,7 @@ def evaluate(records: list[dict[str, Any]]) -> dict[str, Any]:
     with httpx.Client(timeout=120) as client:
         for record in records:
             query_id = str(record.get("query_id", "unknown"))
-            relevant = {int(case_id) for case_id in record.get("relevant_case_ids", [])}
+            relevant, graded_relevance = extract_relevance(record)
             if not relevant:
                 continue
 
@@ -182,7 +236,12 @@ def evaluate(records: list[dict[str, Any]]) -> dict[str, Any]:
                     "precision_at_10": precision_at_k(retrieved, relevant, 10),
                     "recall_at_20": recall_at_k(retrieved, relevant, 20),
                     "mrr_at_10": mrr_at_k(retrieved, relevant, 10),
-                    "ndcg_at_10": ndcg_at_k(retrieved, relevant, 10),
+                    "ndcg_at_10": ndcg_at_k(
+                        retrieved,
+                        relevant,
+                        10,
+                        graded_relevance=graded_relevance,
+                    ),
                 }
             )
 
@@ -226,14 +285,14 @@ def ensure_template_eval_file(path: Path) -> None:
 def main() -> None:
     """Run retrieval quality evaluation and write report."""
     args = parse_args()
-    eval_path = Path("data/evals/similar_cases_gold.jsonl")
+    eval_path = Path(args.eval_file)
     ensure_template_eval_file(eval_path)
     records = load_eval_dataset(eval_path)
     if args.max_queries and args.max_queries > 0:
         records = records[: args.max_queries]
     report = evaluate(records)
 
-    output_path = Path("data/processed/retrieval_eval_report.json")
+    output_path = Path(args.output_file)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
