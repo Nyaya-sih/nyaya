@@ -24,3 +24,4 @@ Phase 2 change tracker (one/two-line per iteration).
 20. (current, uncommitted) - Extended retrieval eval script to support configurable input/output paths and graded human-judgment labels (`judgments` with 0/1/2) for nDCG and relevance metrics.
 21. (current, uncommitted) - Added `scripts/21_generate_human_eval_packets.py` plus tests to build reviewer-ready annotation packets from live `/cases/{id}/similar` results.
 22. (current, uncommitted) - Generated initial annotation packet batch at `data/evals/similar_cases_human_packets.jsonl` and updated the human eval plan with the exact generation command.
+23. (current, uncommitted) - Added `scripts/22_build_human_gold_from_packets.py` and tests to convert labeled annotation packets into `similar_cases_human_gold.jsonl` for graded evaluation runs.

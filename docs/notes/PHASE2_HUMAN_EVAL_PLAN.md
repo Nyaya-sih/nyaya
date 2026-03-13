@@ -43,6 +43,14 @@ PYTHONPATH=. venv/bin/python scripts/21_generate_human_eval_packets.py --queries
 
 This generates `data/evals/similar_cases_human_packets.jsonl` with query context and candidate slots (`label`, `note`) for annotation.
 
+After reviewers complete labels, build final gold file using:
+
+```bash
+PYTHONPATH=. venv/bin/python scripts/22_build_human_gold_from_packets.py --min-judgments 3
+```
+
+This writes `data/evals/similar_cases_human_gold.jsonl`, ready for `scripts/17_eval_retrieval_quality.py --eval-file ...`.
+
 Example record:
 
 ```json
