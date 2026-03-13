@@ -19,3 +19,4 @@ Phase 2 change tracker (one/two-line per iteration).
 15. (current, uncommitted) - Regenerated eval dataset and reran gates (`pytest`, index integrity, benchmark, retrieval eval) to refresh latest Phase 2 status artifacts.
 16. (current, uncommitted) - Increased case-to-case retrieval recall by using larger candidate pools for `/cases/{id}/similar` and adding mode fallback (`fulltext` -> `combined`) when strict fulltext path returns empty.
 17. (current, uncommitted) - Focused case query construction on title/headnotes/sections/reasoning/full-text excerpt (reduced noisy argument fields) and expanded API contract tests for new fallback behavior.
+18. (current, uncommitted) - Updated Phase 2 quality SLO/checklist docs to separate heuristic-dataset release gates from stricter human-judged production targets.

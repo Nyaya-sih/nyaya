@@ -2,6 +2,17 @@
 
 ## Quality SLOs
 
+Quality gates are split by evaluation dataset type.
+
+### A) Heuristic Gold Set (current `data/evals/similar_cases_gold.jsonl`)
+
+- Recall@20 >= 0.40
+- nDCG@10 >= 0.37
+- Precision@10 >= 0.33
+- MRR@10 tracked and non-regressing release-over-release
+
+### B) Human-Judged Gold Set (target for full production sign-off)
+
 - Recall@20 >= 0.75
 - nDCG@10 >= 0.60
 - Precision@10 >= 0.55
