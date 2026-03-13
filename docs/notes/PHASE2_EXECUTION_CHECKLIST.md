@@ -311,3 +311,4 @@ python scripts/15_benchmark_search.py
 - `docs/notes/PHASE2_SLOS.md`
 - `docs/notes/PHASE2_RUNBOOK.md`
 - `docs/notes/PHASE2_HUMAN_EVAL_PLAN.md`
+- `docs/notes/PHASE2_ANNOTATOR_HANDOFF_TEMPLATE.md`

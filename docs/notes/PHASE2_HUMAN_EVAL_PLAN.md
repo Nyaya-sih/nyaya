@@ -31,6 +31,8 @@ This plan upgrades retrieval quality validation from heuristic labels to human-r
 4. Resolve disagreements via second reviewer for a 10% overlap set.
 5. Record adjudicated final label.
 
+Use `docs/notes/PHASE2_ANNOTATOR_HANDOFF_TEMPLATE.md` for batch assignment, QA steps, and sign-off tracking.
+
 ## Output Format
 
 Store as JSONL at `data/evals/similar_cases_human_gold.jsonl`.
