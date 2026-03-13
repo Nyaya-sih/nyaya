@@ -126,7 +126,11 @@ def fetch_retrieved_case_ids(record: dict[str, Any], client: httpx.Client) -> li
 
     if "query_case_id" in record:
         case_id = int(record["query_case_id"])
-        response = client.get(f"{base_url}/{case_id}/similar", params={"top_k": 20})
+        similarity_mode = str(record.get("similarity_mode", "combined"))
+        response = client.get(
+            f"{base_url}/{case_id}/similar",
+            params={"top_k": 20, "similarity_mode": similarity_mode},
+        )
         response.raise_for_status()
         payload = response.json()
         return [int(item["case_id"]) for item in payload.get("results", [])]

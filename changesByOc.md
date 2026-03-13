@@ -1,0 +1,19 @@
+# changesByOc
+
+Phase 2 change tracker (one/two-line per iteration).
+
+1. `97a2261c` - Hardened scoring and search mode behavior; added scoring config knobs and deterministic reranker tie-break ordering.
+2. `81cbf6d2` - Strengthened similarity explanation grounding by normalizing legal terms/courts and tightening explanation claims.
+3. `56182e2f` - Enforced API contract validation for similar search (mode literals, request bounds, schema-level checks).
+4. `23b99734` - Added regression + integrity + eval tooling foundations (`16_verify_index_integrity.py`, `17_eval_retrieval_quality.py`, new tests).
+5. `46e56ac6` - Expanded benchmark scenarios and created initial eval dataset template scaffold.
+6. `af35e79c` - Added degraded-mode metadata/warnings in search responses and documented API/SLO/runbook docs.
+7. `08837beb` - Synced frontend with backend mode semantics (`fulltext` option + degraded/warning UX cards in results).
+8. `2eae5a12` - Made embedding scripts non-interactive/ops-friendly using `--yes` and `--batch-size` CLI flags.
+9. `42693cc7` - Improved gate script reliability (`--quick` benchmark mode + HTTP fallback for Qdrant integrity counts).
+10. `77b9339b` - Defaulted query LLM metadata extraction to off to reduce default latency overhead.
+11. `cd9d692c` - Synced vector index with DB, rebuilt manifest, expanded eval dataset generation, and tuned reranker candidate path.
+12. (current, uncommitted) - Improved `/cases/{id}/similar` to apply case-context filters (`case_type`, `verdict`, year window) and added endpoint contract test coverage.
+13. (current, uncommitted) - Added this running tracker file for Phase 2 visibility as requested.
+14. (current, uncommitted) - Added a final broad fallback pass for `/cases/{id}/similar` (strict -> medium -> loose -> broad) to reduce no-result queries while preserving earlier precision tiers.
+15. (current, uncommitted) - Regenerated eval dataset and reran gates (`pytest`, index integrity, benchmark, retrieval eval) to refresh latest Phase 2 status artifacts.

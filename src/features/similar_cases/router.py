@@ -266,12 +266,21 @@ def get_similar_to_case(
     if not case:
         raise HTTPException(status_code=404, detail="Case not found.")
 
+    full_text = case.full_text or ""
+    if len(full_text) > 5000:
+        full_text_excerpt = full_text[:4000] + "\n...\n" + full_text[-1000:]
+    else:
+        full_text_excerpt = full_text
+
     query_text = "\n".join(
         [
             case.case_title or "",
+            " ".join(case.headnotes or []),
             case.key_arguments_petitioner or "",
             case.key_arguments_respondent or "",
             case.court_reasoning or "",
+            " ".join(case.sections_invoked or []),
+            full_text_excerpt,
         ]
     ).strip()
 
@@ -280,10 +289,46 @@ def get_similar_to_case(
             status_code=400, detail="Insufficient case text for similarity search."
         )
 
-    filters = SearchFilters(similarity_mode=similarity_mode)
-    response = search_engine.search(
-        query_text, filters=filters, top_k=top_k, exclude_case_id=case_id
-    )
+    case_year = case.date_of_judgment.year if case.date_of_judgment else None
+    year_from = max(1950, case_year - 15) if case_year else None
+    year_to = min(2025, case_year + 1) if case_year else None
+
+    # Progressive fallback: strict -> medium -> loose -> broad
+    attempts = [
+        SearchFilters(
+            similarity_mode=similarity_mode,
+            court=case.court,
+            case_type=case.case_type,
+            verdict=case.verdict,
+            year_from=year_from,
+            year_to=year_to,
+        ),
+        SearchFilters(
+            similarity_mode=similarity_mode,
+            court=case.court,
+            case_type=case.case_type,
+            year_from=year_from,
+            year_to=year_to,
+        ),
+        SearchFilters(
+            similarity_mode=similarity_mode,
+            case_type=case.case_type,
+            year_from=year_from,
+            year_to=year_to,
+        ),
+        SearchFilters(similarity_mode=similarity_mode),
+    ]
+
+    response = None
+    for filters in attempts:
+        response = search_engine.search(
+            query_text, filters=filters, top_k=top_k, exclude_case_id=case_id
+        )
+        if response.total_results > 0:
+            break
+
+    if response is None:
+        raise HTTPException(status_code=500, detail="Similarity search failed.")
     return _convert_search_response(response)
 
 

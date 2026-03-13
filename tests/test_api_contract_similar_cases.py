@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from src.api.dependencies import get_db_session
 from src.api.dependencies import get_search_engine
 from src.features.similar_cases.router import router
 from src.features.similar_cases.search_engine import SearchFilters
@@ -58,12 +59,14 @@ class DummySearchEngine:
     def __init__(self):
         self.last_filters = None
         self.last_top_k = None
+        self.last_exclude_case_id = None
 
     def search(
         self, query_text: str, filters: SearchFilters, top_k: int, exclude_case_id=None
     ):
         self.last_filters = filters
         self.last_top_k = top_k
+        self.last_exclude_case_id = exclude_case_id
         explanation = SimilarityExplanation(
             overall_score=0.88,
             dimensions=[
@@ -98,7 +101,38 @@ def _build_client() -> tuple[TestClient, DummySearchEngine]:
     app = FastAPI()
     app.include_router(router)
     engine = DummySearchEngine()
+
+    class DummyCase:
+        id = 999
+        case_title = "State vs Test"
+        court = "High Court of Delhi"
+        headnotes = ["Bail jurisprudence", "Section 302 analysis"]
+        key_arguments_petitioner = "Petitioner argument text " * 10
+        key_arguments_respondent = "Respondent argument text " * 10
+        court_reasoning = "Reasoning text " * 10
+        sections_invoked = ["Section 302 IPC", "Section 34 IPC"]
+        full_text = "Full judgment text " * 30
+        case_type = "Criminal"
+        verdict = "Convicted"
+
+        class _Date:
+            year = 2023
+
+        date_of_judgment = _Date()
+
+    class DummyQuery:
+        def filter(self, *_args, **_kwargs):
+            return self
+
+        def first(self):
+            return DummyCase()
+
+    class DummySession:
+        def query(self, *_args, **_kwargs):
+            return DummyQuery()
+
     app.dependency_overrides[get_search_engine] = lambda: engine
+    app.dependency_overrides[get_db_session] = lambda: DummySession()
     return TestClient(app), engine
 
 
@@ -146,3 +180,96 @@ def test_text_search_contract_shape_and_filter_mapping():
     assert engine.last_filters is not None
     assert engine.last_filters.similarity_mode == "factual"
     assert engine.last_top_k == 3
+
+
+def test_get_similar_to_case_applies_case_context_filters():
+    """Case-to-case endpoint should prefill case metadata filters."""
+    client, engine = _build_client()
+    response = client.get("/api/v1/cases/999/similar", params={"top_k": 4})
+
+    assert response.status_code == 200
+    assert engine.last_filters is not None
+    assert engine.last_filters.court == "High Court of Delhi"
+    assert engine.last_filters.case_type == "Criminal"
+    assert engine.last_filters.verdict == "Convicted"
+    assert engine.last_filters.year_from == 2008
+    assert engine.last_filters.year_to == 2024
+    assert engine.last_exclude_case_id == 999
+    assert engine.last_top_k == 4
+
+
+def test_get_similar_to_case_uses_progressive_filter_fallback():
+    """If strict filters return empty, endpoint should retry with relaxed filters."""
+
+    class FallbackEngine(DummySearchEngine):
+        def __init__(self):
+            super().__init__()
+            self.calls = []
+
+        def search(
+            self,
+            query_text: str,
+            filters: SearchFilters,
+            top_k: int,
+            exclude_case_id=None,
+        ):
+            self.calls.append(filters)
+            if len(self.calls) <= 3:
+                return DummyResponse(
+                    query_summary="query",
+                    total_results=0,
+                    search_time_ms=10.0,
+                    results=[],
+                    filters_applied={"similarity_mode": filters.similarity_mode},
+                    disclaimer="decision support",
+                    retrieval_mode="full",
+                    warnings=[],
+                )
+            return super().search(query_text, filters, top_k, exclude_case_id)
+
+    app = FastAPI()
+    app.include_router(router)
+    engine = FallbackEngine()
+
+    class DummyCase:
+        id = 999
+        case_title = "State vs Test"
+        court = "High Court of Delhi"
+        headnotes = ["Bail jurisprudence", "Section 302 analysis"]
+        key_arguments_petitioner = "Petitioner argument text " * 10
+        key_arguments_respondent = "Respondent argument text " * 10
+        court_reasoning = "Reasoning text " * 10
+        sections_invoked = ["Section 302 IPC", "Section 34 IPC"]
+        full_text = "Full judgment text " * 30
+        case_type = "Criminal"
+        verdict = "Convicted"
+
+        class _Date:
+            year = 2023
+
+        date_of_judgment = _Date()
+
+    class DummyQuery:
+        def filter(self, *_args, **_kwargs):
+            return self
+
+        def first(self):
+            return DummyCase()
+
+    class DummySession:
+        def query(self, *_args, **_kwargs):
+            return DummyQuery()
+
+    app.dependency_overrides[get_search_engine] = lambda: engine
+    app.dependency_overrides[get_db_session] = lambda: DummySession()
+    client = TestClient(app)
+
+    response = client.get("/api/v1/cases/999/similar", params={"top_k": 4})
+    assert response.status_code == 200
+    assert len(engine.calls) == 4
+    assert engine.calls[0].verdict == "Convicted"
+    assert engine.calls[1].verdict is None
+    assert engine.calls[2].court is None
+    assert engine.calls[2].case_type == "Criminal"
+    assert engine.calls[3].case_type is None
+    assert engine.calls[3].year_from is None

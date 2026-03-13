@@ -21,3 +21,12 @@ def test_parse_args_for_eval_dataset_generation(monkeypatch):
     args = MODULE.parse_args()
     assert args.queries == 200
     assert args.seed == 7
+
+
+def test_normalize_sections_handles_list_and_string():
+    """Section normalization should uppercase and trim tokens."""
+    assert MODULE._normalize_sections([" section 302 ", "CrPC 164"]) == [
+        "SECTION 302",
+        "CRPC 164",
+    ]
+    assert MODULE._normalize_sections(" ipc 304 ") == ["IPC 304"]

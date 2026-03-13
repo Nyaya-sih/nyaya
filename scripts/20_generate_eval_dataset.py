@@ -14,6 +14,7 @@ import json
 import random
 from collections import defaultdict
 from pathlib import Path
+from typing import Any
 
 from loguru import logger
 from sqlalchemy import create_engine
@@ -57,6 +58,7 @@ def main() -> None:
                 Case.case_type,
                 Case.verdict,
                 Case.date_of_judgment,
+                Case.sections_invoked,
             )
             .filter(Case.validation_status != "invalid")
             .all()
@@ -71,6 +73,7 @@ def main() -> None:
         case_type = str(row[2] or "")
         verdict = str(row[3] or "")
         year = row[4].year if row[4] else 0
+        sections = _normalize_sections(row[5])
         cases.append(
             {
                 "id": case_id,
@@ -78,37 +81,48 @@ def main() -> None:
                 "case_type": case_type,
                 "verdict": verdict,
                 "year": int(year),
+                "sections": sections,
             }
         )
 
     by_strict: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
-    by_case_type: dict[str, list[dict]] = defaultdict(list)
     for case in cases:
         by_strict[(case["court"], case["case_type"], case["verdict"])].append(case)
-        by_case_type[case["case_type"]].append(case)
 
     candidates = [case for case in cases if case["case_type"]]
     random.shuffle(candidates)
 
     records = []
     for case in candidates:
+        if not case["sections"]:
+            continue
+
         strict_pool = [
             item
             for item in by_strict[(case["court"], case["case_type"], case["verdict"])]
             if item["id"] != case["id"]
         ]
-        fallback_pool = [
-            item for item in by_case_type[case["case_type"]] if item["id"] != case["id"]
-        ]
+        if not strict_pool:
+            continue
 
-        pool = strict_pool if len(strict_pool) >= 2 else fallback_pool
-        if not pool:
+        overlap_pool = []
+        query_sections = set(case["sections"])
+        for item in strict_pool:
+            overlap_count = len(query_sections & set(item["sections"]))
+            if overlap_count > 0:
+                overlap_pool.append((item, overlap_count))
+
+        if not overlap_pool:
             continue
 
         ranked = sorted(
-            pool, key=lambda item: abs((item["year"] or 0) - (case["year"] or 0))
+            overlap_pool,
+            key=lambda pair: (
+                -pair[1],
+                abs((pair[0]["year"] or 0) - (case["year"] or 0)),
+            ),
         )
-        relevant_ids = [item["id"] for item in ranked[: max(1, args.max_relevant)]]
+        relevant_ids = [item["id"] for item, _ in ranked[: max(1, args.max_relevant)]]
         if not relevant_ids:
             continue
 
@@ -116,6 +130,7 @@ def main() -> None:
             {
                 "query_id": f"case_{case['id']}",
                 "query_case_id": case["id"],
+                "similarity_mode": "fulltext",
                 "relevant_case_ids": relevant_ids,
             }
         )
@@ -129,6 +144,25 @@ def main() -> None:
             file.write(json.dumps(record) + "\n")
 
     logger.info("Eval dataset generated", records=len(records), path=str(output))
+
+
+def _normalize_sections(value: Any) -> list[str]:
+    """Normalize section values for overlap matching."""
+    if value is None:
+        return []
+    if isinstance(value, list):
+        raw = value
+    else:
+        raw = [value]
+
+    normalized = []
+    for item in raw:
+        if not item:
+            continue
+        token = " ".join(str(item).strip().split()).upper()
+        if token:
+            normalized.append(token)
+    return normalized
 
 
 if __name__ == "__main__":
