@@ -272,14 +272,16 @@ def get_similar_to_case(
     else:
         full_text_excerpt = full_text
 
+    headnotes = [note.strip() for note in (case.headnotes or []) if str(note).strip()]
+    key_headnotes = " ".join(headnotes[:8])
+    reasoning_excerpt = (case.court_reasoning or "")[:2500]
+
     query_text = "\n".join(
         [
             case.case_title or "",
-            " ".join(case.headnotes or []),
-            case.key_arguments_petitioner or "",
-            case.key_arguments_respondent or "",
-            case.court_reasoning or "",
+            key_headnotes,
             " ".join(case.sections_invoked or []),
+            reasoning_excerpt,
             full_text_excerpt,
         ]
     ).strip()
@@ -293,38 +295,48 @@ def get_similar_to_case(
     year_from = max(1950, case_year - 15) if case_year else None
     year_to = min(2025, case_year + 1) if case_year else None
 
-    # Progressive fallback: strict -> medium -> loose -> broad
-    attempts = [
-        SearchFilters(
-            similarity_mode=similarity_mode,
-            court=case.court,
-            case_type=case.case_type,
-            verdict=case.verdict,
-            year_from=year_from,
-            year_to=year_to,
-        ),
-        SearchFilters(
-            similarity_mode=similarity_mode,
-            court=case.court,
-            case_type=case.case_type,
-            year_from=year_from,
-            year_to=year_to,
-        ),
-        SearchFilters(
-            similarity_mode=similarity_mode,
-            case_type=case.case_type,
-            year_from=year_from,
-            year_to=year_to,
-        ),
-        SearchFilters(similarity_mode=similarity_mode),
-    ]
+    attempt_modes = [similarity_mode]
+    if similarity_mode == "fulltext":
+        attempt_modes.append("combined")
 
     response = None
-    for filters in attempts:
-        response = search_engine.search(
-            query_text, filters=filters, top_k=top_k, exclude_case_id=case_id
-        )
-        if response.total_results > 0:
+    for mode in attempt_modes:
+        attempts = [
+            SearchFilters(
+                similarity_mode=mode,
+                court=case.court,
+                case_type=case.case_type,
+                verdict=case.verdict,
+                year_from=year_from,
+                year_to=year_to,
+            ),
+            SearchFilters(
+                similarity_mode=mode,
+                court=case.court,
+                case_type=case.case_type,
+                year_from=year_from,
+                year_to=year_to,
+            ),
+            SearchFilters(
+                similarity_mode=mode,
+                case_type=case.case_type,
+                year_from=year_from,
+                year_to=year_to,
+            ),
+            SearchFilters(similarity_mode=mode),
+        ]
+        for filters in attempts:
+            response = search_engine.search(
+                query_text,
+                filters=filters,
+                top_k=top_k,
+                exclude_case_id=case_id,
+                vector_candidate_k=max(settings.vector_search_candidates, 60),
+                reranker_candidate_limit=max(settings.reranker_candidate_limit, 30),
+            )
+            if response.total_results > 0:
+                break
+        if response and response.total_results > 0:
             break
 
     if response is None:

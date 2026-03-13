@@ -108,6 +108,8 @@ class SimilarCaseSearchEngine:
         filters: Optional[SearchFilters] = None,
         top_k: int = settings.default_top_k,
         exclude_case_id: Optional[int] = None,
+        vector_candidate_k: Optional[int] = None,
+        reranker_candidate_limit: Optional[int] = None,
     ) -> SearchResponse:
         """Run full search pipeline. Track time.
 
@@ -123,6 +125,8 @@ class SimilarCaseSearchEngine:
             filters: Optional search filters.
             top_k: Number of results to return.
             exclude_case_id: Case ID to exclude from results.
+            vector_candidate_k: Optional override for vector candidate pool size.
+            reranker_candidate_limit: Optional override for reranker pool size.
 
         Returns:
             SearchResponse object.
@@ -196,9 +200,10 @@ class SimilarCaseSearchEngine:
                     )
 
         try:
+            vector_pool = int(vector_candidate_k or settings.vector_search_candidates)
             candidates = self.vector_store.search(
                 query_embedding=query_embedding,
-                top_k=settings.vector_search_candidates,
+                top_k=vector_pool,
                 court_filter=filters.court,
                 case_type_filter=filters.case_type,
                 year_from=filters.year_from,
@@ -242,7 +247,9 @@ class SimilarCaseSearchEngine:
                     key=lambda item: item.similarity_score,
                     reverse=True,
                 )
-                limit = int(settings.reranker_candidate_limit)
+                limit = int(
+                    reranker_candidate_limit or settings.reranker_candidate_limit
+                )
                 if limit > 0:
                     rerank_pool = rerank_pool[:limit]
                 ranked_candidates = self.reranker.rerank(

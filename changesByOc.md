@@ -17,3 +17,5 @@ Phase 2 change tracker (one/two-line per iteration).
 13. (current, uncommitted) - Added this running tracker file for Phase 2 visibility as requested.
 14. (current, uncommitted) - Added a final broad fallback pass for `/cases/{id}/similar` (strict -> medium -> loose -> broad) to reduce no-result queries while preserving earlier precision tiers.
 15. (current, uncommitted) - Regenerated eval dataset and reran gates (`pytest`, index integrity, benchmark, retrieval eval) to refresh latest Phase 2 status artifacts.
+16. (current, uncommitted) - Increased case-to-case retrieval recall by using larger candidate pools for `/cases/{id}/similar` and adding mode fallback (`fulltext` -> `combined`) when strict fulltext path returns empty.
+17. (current, uncommitted) - Focused case query construction on title/headnotes/sections/reasoning/full-text excerpt (reduced noisy argument fields) and expanded API contract tests for new fallback behavior.

@@ -62,7 +62,12 @@ class DummySearchEngine:
         self.last_exclude_case_id = None
 
     def search(
-        self, query_text: str, filters: SearchFilters, top_k: int, exclude_case_id=None
+        self,
+        query_text: str,
+        filters: SearchFilters,
+        top_k: int,
+        exclude_case_id=None,
+        **_kwargs,
     ):
         self.last_filters = filters
         self.last_top_k = top_k
@@ -212,6 +217,7 @@ def test_get_similar_to_case_uses_progressive_filter_fallback():
             filters: SearchFilters,
             top_k: int,
             exclude_case_id=None,
+            **kwargs,
         ):
             self.calls.append(filters)
             if len(self.calls) <= 3:
@@ -225,7 +231,13 @@ def test_get_similar_to_case_uses_progressive_filter_fallback():
                     retrieval_mode="full",
                     warnings=[],
                 )
-            return super().search(query_text, filters, top_k, exclude_case_id)
+            return super().search(
+                query_text,
+                filters,
+                top_k,
+                exclude_case_id,
+                **kwargs,
+            )
 
     app = FastAPI()
     app.include_router(router)
@@ -273,3 +285,87 @@ def test_get_similar_to_case_uses_progressive_filter_fallback():
     assert engine.calls[2].case_type == "Criminal"
     assert engine.calls[3].case_type is None
     assert engine.calls[3].year_from is None
+
+
+def test_get_similar_to_case_falls_back_from_fulltext_to_combined_mode():
+    """Fulltext mode should retry in combined mode when fulltext returns empty."""
+
+    class ModeFallbackEngine(DummySearchEngine):
+        def __init__(self):
+            super().__init__()
+            self.calls = []
+
+        def search(
+            self,
+            query_text: str,
+            filters: SearchFilters,
+            top_k: int,
+            exclude_case_id=None,
+            **kwargs,
+        ):
+            self.calls.append(filters)
+            if len(self.calls) <= 4:
+                return DummyResponse(
+                    query_summary="query",
+                    total_results=0,
+                    search_time_ms=10.0,
+                    results=[],
+                    filters_applied={"similarity_mode": filters.similarity_mode},
+                    disclaimer="decision support",
+                    retrieval_mode="full",
+                    warnings=[],
+                )
+            return super().search(
+                query_text,
+                filters,
+                top_k,
+                exclude_case_id,
+                **kwargs,
+            )
+
+    app = FastAPI()
+    app.include_router(router)
+    engine = ModeFallbackEngine()
+
+    class DummyCase:
+        id = 999
+        case_title = "State vs Test"
+        court = "High Court of Delhi"
+        headnotes = ["Bail jurisprudence", "Section 302 analysis"]
+        key_arguments_petitioner = "Petitioner argument text " * 10
+        key_arguments_respondent = "Respondent argument text " * 10
+        court_reasoning = "Reasoning text " * 10
+        sections_invoked = ["Section 302 IPC", "Section 34 IPC"]
+        full_text = "Full judgment text " * 30
+        case_type = "Criminal"
+        verdict = "Convicted"
+
+        class _Date:
+            year = 2023
+
+        date_of_judgment = _Date()
+
+    class DummyQuery:
+        def filter(self, *_args, **_kwargs):
+            return self
+
+        def first(self):
+            return DummyCase()
+
+    class DummySession:
+        def query(self, *_args, **_kwargs):
+            return DummyQuery()
+
+    app.dependency_overrides[get_search_engine] = lambda: engine
+    app.dependency_overrides[get_db_session] = lambda: DummySession()
+    client = TestClient(app)
+
+    response = client.get(
+        "/api/v1/cases/999/similar",
+        params={"top_k": 4, "similarity_mode": "fulltext"},
+    )
+    assert response.status_code == 200
+    assert len(engine.calls) == 5
+    assert engine.calls[0].similarity_mode == "fulltext"
+    assert engine.calls[3].similarity_mode == "fulltext"
+    assert engine.calls[4].similarity_mode == "combined"
