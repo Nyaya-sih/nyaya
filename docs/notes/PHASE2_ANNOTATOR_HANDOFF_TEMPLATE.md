@@ -21,6 +21,14 @@ Use this template to start a new annotation batch for human-judged retrieval eva
 - Reviewer C:
   - query_ids:
 
+To auto-create reviewer subsets from packets:
+
+```bash
+PYTHONPATH=. venv/bin/python scripts/24_export_annotation_batch.py --reviewers A,B,C --overlap-percent 10
+```
+
+Output files are written under `data/evals/human_batches/` by default.
+
 ## Label Policy (Required)
 
 - `2` Highly relevant

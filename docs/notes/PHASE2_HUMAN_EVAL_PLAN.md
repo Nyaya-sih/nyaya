@@ -45,6 +45,12 @@ PYTHONPATH=. venv/bin/python scripts/21_generate_human_eval_packets.py --queries
 
 This generates `data/evals/similar_cases_human_packets.jsonl` with query context and candidate slots (`label`, `note`) for annotation.
 
+Optionally split packets into reviewer-specific batch files:
+
+```bash
+PYTHONPATH=. venv/bin/python scripts/24_export_annotation_batch.py --reviewers A,B,C --overlap-percent 10
+```
+
 After reviewers complete labels, build final gold file using:
 
 ```bash

@@ -27,3 +27,4 @@ Phase 2 change tracker (one/two-line per iteration).
 23. (current, uncommitted) - Added `scripts/22_build_human_gold_from_packets.py` and tests to convert labeled annotation packets into `similar_cases_human_gold.jsonl` for graded evaluation runs.
 24. (current, uncommitted) - Added `scripts/23_validate_human_annotations.py` and tests to report annotation completeness/label distribution before converting packets into human-gold eval data.
 25. (current, uncommitted) - Added `docs/notes/PHASE2_ANNOTATOR_HANDOFF_TEMPLATE.md` and linked it from human-eval/checklist docs so reviewers can start labeled batches with a repeatable QA/sign-off flow.
+26. (current, uncommitted) - Added `scripts/24_export_annotation_batch.py` and tests to split packets into reviewer-specific JSONL batches with configurable overlap for adjudication.
