@@ -1,0 +1,55 @@
+# Phase 2 Human-Judged Evaluation Plan
+
+This plan upgrades retrieval quality validation from heuristic labels to human-reviewed relevance judgments.
+
+## Objective
+
+- Produce a human-judged gold set for similar-case retrieval.
+- Measure production quality against stricter thresholds in `docs/notes/PHASE2_SLOS.md`.
+
+## Scope
+
+- Query set size: 300 cases (minimum 200).
+- Candidate depth per query: top 20 retrieved.
+- Annotation labels:
+  - `2` = highly relevant precedent
+  - `1` = partially relevant / contextually useful
+  - `0` = not relevant
+
+## Sampling Strategy
+
+1. Stratify by major case types (Criminal, Civil, Writ, others).
+2. Stratify by major courts to avoid single-court bias.
+3. Include a mix of recent and older judgments.
+4. Keep a fixed seed and preserve sampled `query_case_id`s in source control.
+
+## Annotation Protocol
+
+1. For each query case, review query metadata and summary excerpt.
+2. Evaluate each retrieved candidate independently.
+3. Label relevance (`0/1/2`) and add a short rationale.
+4. Resolve disagreements via second reviewer for a 10% overlap set.
+5. Record adjudicated final label.
+
+## Output Format
+
+Store as JSONL at `data/evals/similar_cases_human_gold.jsonl`.
+
+Example record:
+
+```json
+{"query_id":"case_1234","query_case_id":1234,"similarity_mode":"fulltext","judgments":[{"case_id":4567,"label":2,"note":"Same statute + near-identical fact pattern"},{"case_id":8910,"label":1,"note":"Same court and issue but weaker factual overlap"}]}
+```
+
+## Metrics
+
+- nDCG@10 with graded relevance (0/1/2)
+- Recall@20 using labels >= 1 as relevant
+- Precision@10 using labels >= 1 as relevant
+- MRR@10 using labels >= 1 as relevant
+
+## Release Usage
+
+- Use heuristic gate for continuous iteration.
+- Use human-judged gate for production sign-off.
+- Keep both reports for trend comparison release-over-release.
