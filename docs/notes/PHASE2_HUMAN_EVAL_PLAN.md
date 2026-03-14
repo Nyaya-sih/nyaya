@@ -51,6 +51,12 @@ Optionally split packets into reviewer-specific batch files:
 PYTHONPATH=. venv/bin/python scripts/24_export_annotation_batch.py --reviewers A,B,C --overlap-percent 10
 ```
 
+After reviewer labeling, merge batches and inspect conflicts:
+
+```bash
+PYTHONPATH=. venv/bin/python scripts/25_merge_annotator_batches.py
+```
+
 After reviewers complete labels, build final gold file using:
 
 ```bash

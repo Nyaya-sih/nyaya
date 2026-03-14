@@ -28,3 +28,6 @@ Phase 2 change tracker (one/two-line per iteration).
 24. (current, uncommitted) - Added `scripts/23_validate_human_annotations.py` and tests to report annotation completeness/label distribution before converting packets into human-gold eval data.
 25. (current, uncommitted) - Added `docs/notes/PHASE2_ANNOTATOR_HANDOFF_TEMPLATE.md` and linked it from human-eval/checklist docs so reviewers can start labeled batches with a repeatable QA/sign-off flow.
 26. (current, uncommitted) - Added `scripts/24_export_annotation_batch.py` and tests to split packets into reviewer-specific JSONL batches with configurable overlap for adjudication.
+27. (current, uncommitted) - Added `scripts/25_merge_annotator_batches.py` and tests to merge reviewer outputs with majority resolution and emit a conflict report for adjudication.
+28. (current, uncommitted) - Tuned default candidate pool settings (`VECTOR_SEARCH_CANDIDATES=18`, `RERANKER_CANDIDATE_LIMIT=10`) to stabilize warm-latency p95 under the Phase 2 benchmark target.
+29. (current, uncommitted) - Added `docs/notes/PHASE2_FINAL_STATUS.md` with final gate results and the complete human-judged eval workflow handoff.

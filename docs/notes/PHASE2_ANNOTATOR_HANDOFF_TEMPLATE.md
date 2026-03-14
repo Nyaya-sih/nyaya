@@ -51,9 +51,12 @@ Output files are written under `data/evals/human_batches/` by default.
 1. Run completeness check:
    - `PYTHONPATH=. venv/bin/python scripts/23_validate_human_annotations.py --min-labeled-per-query 3`
 2. Resolve all queries flagged with under-labeling.
-3. Convert labeled packets to gold file:
+3. Merge reviewer batch outputs and produce conflict report:
+   - `PYTHONPATH=. venv/bin/python scripts/25_merge_annotator_batches.py`
+4. Adjudicate conflict rows in `data/processed/human_annotation_conflicts.json`.
+5. Convert labeled packets to gold file:
    - `PYTHONPATH=. venv/bin/python scripts/22_build_human_gold_from_packets.py --min-judgments 3`
-4. Run retrieval metrics on human gold:
+6. Run retrieval metrics on human gold:
    - `PYTHONPATH=. venv/bin/python scripts/17_eval_retrieval_quality.py --eval-file data/evals/similar_cases_human_gold.jsonl --output-file data/processed/retrieval_eval_human_report.json`
 
 ## Conflict Resolution (10% Overlap)
