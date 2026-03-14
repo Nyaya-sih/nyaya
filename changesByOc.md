@@ -31,3 +31,4 @@ Phase 2 change tracker (one/two-line per iteration).
 27. (current, uncommitted) - Added `scripts/25_merge_annotator_batches.py` and tests to merge reviewer outputs with majority resolution and emit a conflict report for adjudication.
 28. (current, uncommitted) - Tuned default candidate pool settings (`VECTOR_SEARCH_CANDIDATES=18`, `RERANKER_CANDIDATE_LIMIT=10`) to stabilize warm-latency p95 under the Phase 2 benchmark target.
 29. (current, uncommitted) - Added `docs/notes/PHASE2_FINAL_STATUS.md` with final gate results and the complete human-judged eval workflow handoff.
+30. (current, uncommitted) - Added `runThese.md` with a full local runbook (setup, infra, indexing, API/frontend launch, validation commands, and shutdown steps).
