@@ -35,6 +35,11 @@ Then open `.env` and set at least:
 
 - `OPENAI_API_KEY` (required for embedding/query flows)
 - any DB host/port overrides if your Docker ports differ
+- recommended retrieval knobs for local performance/quality balance:
+  - `VECTOR_SEARCH_CANDIDATES=18`
+  - `RERANKER_CANDIDATE_LIMIT=14`
+  - `ENABLE_HYBRID_RETRIEVAL=true`
+  - `HYBRID_EXTRA_CANDIDATES=0`
 
 ## 2) Start infrastructure (Postgres + Qdrant + Redis)
 

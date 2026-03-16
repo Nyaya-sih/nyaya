@@ -37,3 +37,4 @@ Phase 2 change tracker (one/two-line per iteration).
 33. (current, uncommitted) - Recalibrated frontend score bars into user-meaningful buckets: `Semantic Match`, `Legal Overlap`, and `Context Match`.
 34. (current, uncommitted) - Re-ran full tests, retrieval eval, and benchmark; quality improved materially while warm p95 remained within the performance gate on tuned runtime settings.
 35. (current, uncommitted) - Updated final status/human-eval docs to mark lawyer-annotation workflow as ready-but-paused until external reviewer availability.
+36. (current, uncommitted) - Updated `runThese.md` with recommended local retrieval env settings so local runs match the tuned quality/latency profile.
