@@ -11,8 +11,10 @@ Full pipeline:
 """
 
 from dataclasses import dataclass, field
+from collections import Counter
 from typing import Optional
 import json
+import math
 import re
 import time
 
@@ -136,11 +138,12 @@ class SimilarCaseSearchEngine:
         warnings: list[str] = []
         retrieval_mode = "full"
 
-        summarized_text = self._summarize_query_text(query_text)
+        prepared_text = self._prepare_query_text(query_text)
+        summarized_text = self._summarize_query_text(prepared_text)
         query_embedding = self.embedding_generator.generate_query_embedding(
             summarized_text
         )
-        query_metadata = self._extract_query_metadata(query_text)
+        query_metadata = self._extract_query_metadata(prepared_text)
         if filters.court:
             query_metadata["court"] = filters.court
         if filters.case_type:
@@ -212,6 +215,16 @@ class SimilarCaseSearchEngine:
                 collection=collection,
                 exclude_case_id=exclude_case_id,
             )
+
+            if settings.enable_hybrid_retrieval:
+                candidates = self._build_hybrid_candidates(
+                    query_text=prepared_text,
+                    query_embedding=query_embedding,
+                    base_candidates=candidates,
+                    filters=filters,
+                    collection=collection,
+                    exclude_case_id=exclude_case_id,
+                )
         except Exception as exc:
             logger.error("Vector search failed", error=str(exc))
             warnings.append("Vector search failed; returning no results.")
@@ -273,9 +286,10 @@ class SimilarCaseSearchEngine:
             if candidate.combined_score < settings.similarity_threshold:
                 continue
 
+            candidate_payload = self._enrich_candidate_metadata(candidate.payload)
             explanation = self.similarity_analyzer.compute_rule_based_similarity(
                 query_payload=query_metadata,
-                candidate_payload=candidate.payload,
+                candidate_payload=candidate_payload,
                 vector_score=candidate.vector_score,
             )
             results.append(
@@ -291,19 +305,19 @@ class SimilarCaseSearchEngine:
                     vector_score=candidate.vector_score,
                     rerank_score=candidate.rerank_score,
                     similarity_explanation=explanation,
-                    statutes_cited=candidate.payload.get("statutes_cited", []) or [],
-                    sections_invoked=candidate.payload.get("sections_invoked", [])
+                    statutes_cited=candidate_payload.get("statutes_cited", []) or [],
+                    sections_invoked=candidate_payload.get("sections_invoked", [])
                     or [],
-                    key_arguments_petitioner=candidate.payload.get(
+                    key_arguments_petitioner=candidate_payload.get(
                         "key_arguments_petitioner", ""
                     )
                     or "",
-                    key_arguments_respondent=candidate.payload.get(
+                    key_arguments_respondent=candidate_payload.get(
                         "key_arguments_respondent", ""
                     )
                     or "",
-                    court_reasoning=candidate.payload.get("court_reasoning", "") or "",
-                    headnotes=candidate.payload.get("headnotes", []) or [],
+                    court_reasoning=candidate_payload.get("court_reasoning", "") or "",
+                    headnotes=candidate_payload.get("headnotes", []) or [],
                 )
             )
             rank += 1
@@ -365,19 +379,402 @@ class SimilarCaseSearchEngine:
             if any(keyword in text for keyword in keywords):
                 statutes.append(statute)
 
+        inferred_from_sections = self._infer_statutes_from_sections(
+            self._extract_sections(normalized)
+        )
+        if inferred_from_sections:
+            statutes.extend(inferred_from_sections)
+        statutes = sorted(set(statutes))
+
         case_type = self._extract_case_type(normalized)
 
         sections_invoked = self._extract_sections(normalized)
         court = self._extract_court(normalized)
         year = self._extract_year(normalized)
+        verdict = self._extract_verdict(normalized)
 
         return {
             "statutes_cited": statutes,
             "sections_invoked": sections_invoked,
             "case_type": case_type,
-            "verdict": None,
+            "verdict": verdict,
             "year": year,
             "court": court,
+        }
+
+    def _prepare_query_text(self, query_text: str) -> str:
+        """Prepare query text by removing boilerplate and prioritizing useful blocks."""
+        stripped = self._strip_boilerplate_blocks(query_text)
+        salient = self._extract_salient_blocks(stripped)
+        if len(salient.strip()) >= 300:
+            return salient
+        return stripped
+
+    def _strip_boilerplate_blocks(self, query_text: str) -> str:
+        """Remove repetitive legal header/noise blocks from uploaded text."""
+        if not query_text:
+            return ""
+
+        lines = [line.strip() for line in query_text.replace("\r", "\n").split("\n")]
+        cleaned_lines = []
+        skip_line_patterns = [
+            r"^in the .{0,80}court",
+            r"^before[:\s]",
+            r"^coram[:\s]",
+            r"^appearance[:\s]",
+            r"^advocate for",
+            r"^for the petitioner",
+            r"^for the respondent",
+            r"^order\b",
+            r"^oral order\b",
+            r"^page no",
+            r"^case no\.?",
+            r"^cs/?\d",
+            r"^ia no\.?",
+            r"^\.{2,}$",
+        ]
+
+        compiled = [
+            re.compile(pattern, re.IGNORECASE) for pattern in skip_line_patterns
+        ]
+        for idx, line in enumerate(lines):
+            if not line:
+                continue
+            if idx < 120 and any(pattern.search(line) for pattern in compiled):
+                continue
+            if idx < 120 and line.isupper() and len(line) < 130:
+                continue
+            cleaned_lines.append(line)
+
+        return "\n".join(cleaned_lines).strip()
+
+    def _extract_salient_blocks(self, text: str) -> str:
+        """Select fact/issue/reasoning heavy paragraphs from cleaned text."""
+        if not text:
+            return ""
+
+        paragraphs = [p.strip() for p in re.split(r"\n{2,}", text) if p.strip()]
+        if not paragraphs:
+            return text
+
+        priority_terms = {
+            "facts": 3,
+            "fact": 3,
+            "issue": 3,
+            "questions": 2,
+            "reason": 3,
+            "held": 3,
+            "finding": 2,
+            "analysis": 2,
+            "evidence": 2,
+            "section": 2,
+            "article": 2,
+            "statute": 2,
+            "petitioner": 1,
+            "respondent": 1,
+            "therefore": 1,
+            "accordingly": 1,
+        }
+
+        scored: list[tuple[int, str]] = []
+        for paragraph in paragraphs:
+            lower = paragraph.lower()
+            score = 0
+            for term, weight in priority_terms.items():
+                if term in lower:
+                    score += weight
+            if len(paragraph) > 450:
+                score += 1
+            scored.append((score, paragraph))
+
+        scored.sort(key=lambda item: item[0], reverse=True)
+        selected = [paragraph for _, paragraph in scored[:8] if paragraph]
+        if not selected:
+            selected = paragraphs[:6]
+        return "\n\n".join(selected)
+
+    def _extract_verdict(self, text: str) -> Optional[str]:
+        """Infer coarse verdict label from query text."""
+        verdict_patterns = {
+            "Allowed": ["petition is allowed", "appeal allowed", "is allowed"],
+            "Dismissed": [
+                "petition is dismissed",
+                "appeal dismissed",
+                "is dismissed",
+            ],
+            "Convicted": ["convicted", "conviction"],
+            "Acquitted": ["acquitted", "acquittal"],
+            "Bail Granted": ["bail granted", "released on bail"],
+            "Bail Rejected": ["bail rejected", "bail denied"],
+        }
+        for label, patterns in verdict_patterns.items():
+            if any(pattern in text for pattern in patterns):
+                return label
+        return None
+
+    def _infer_statutes_from_sections(self, sections: list[str]) -> list[str]:
+        """Infer statutes from section-style citations."""
+        inferred = set()
+        for section in sections:
+            upper = section.upper()
+            if "IPC" in upper:
+                inferred.add("IPC")
+            if "CRPC" in upper:
+                inferred.add("CrPC")
+            if "CPC" in upper and "CRPC" not in upper:
+                inferred.add("CPC")
+            if "ARTICLE" in upper:
+                inferred.add("Constitution")
+            if "NDPS" in upper:
+                inferred.add("NDPS")
+            if "POCSO" in upper:
+                inferred.add("POCSO")
+            if "NI" in upper or "NEGOTIABLE" in upper:
+                inferred.add("Negotiable Instruments Act")
+        return sorted(inferred)
+
+    def _enrich_candidate_metadata(self, payload: dict) -> dict:
+        """Backfill sparse candidate metadata from payload text fields."""
+        enriched = dict(payload)
+        full_blob = "\n".join(
+            [
+                str(payload.get("case_title", "") or ""),
+                str(payload.get("court_reasoning", "") or ""),
+                str(payload.get("key_arguments_petitioner", "") or ""),
+                str(payload.get("key_arguments_respondent", "") or ""),
+                " ".join(payload.get("headnotes", []) or []),
+                str(payload.get("full_text", "") or "")[:3000],
+            ]
+        ).lower()
+
+        sections = list(payload.get("sections_invoked", []) or [])
+        if not sections:
+            sections = self._extract_sections(full_blob)
+            if sections:
+                enriched["sections_invoked"] = sections
+
+        statutes = list(payload.get("statutes_cited", []) or [])
+        statutes.extend(self._infer_statutes_from_sections(sections))
+        if not statutes:
+            for statute in ["ipc", "crpc", "cpc", "ndps", "pocso", "companies act"]:
+                if statute in full_blob:
+                    statutes.append(
+                        statute.upper()
+                        if statute in {"ipc", "crpc", "cpc"}
+                        else statute.title()
+                    )
+        if statutes:
+            enriched["statutes_cited"] = sorted(
+                set(str(item).strip() for item in statutes if str(item).strip())
+            )
+
+        case_type = str(payload.get("case_type", "") or "").strip()
+        if not case_type:
+            inferred_case_type = self._extract_case_type(full_blob)
+            if inferred_case_type:
+                enriched["case_type"] = inferred_case_type
+
+        verdict = str(payload.get("verdict", "") or "").strip()
+        if not verdict:
+            inferred_verdict = self._extract_verdict(full_blob)
+            if inferred_verdict:
+                enriched["verdict"] = inferred_verdict
+
+        return enriched
+
+    def _build_hybrid_candidates(
+        self,
+        query_text: str,
+        query_embedding,
+        base_candidates: list[SearchResult],
+        filters: SearchFilters,
+        collection: str,
+        exclude_case_id: Optional[int],
+    ) -> list[SearchResult]:
+        """Blend vector and BM25-like lexical signals before reranking."""
+        candidates = list(base_candidates)
+        extra_per_collection = int(settings.hybrid_extra_candidates)
+        if extra_per_collection > 0 and hasattr(
+            self.vector_store, "search_across_collections"
+        ):
+            extra_collections = [
+                self.vector_store.COLLECTION_COMBINED,
+                self.vector_store.COLLECTION_LEGAL,
+                self.vector_store.COLLECTION_FACTUAL,
+            ]
+            if hasattr(self.vector_store, "COLLECTION_FULLTEXT"):
+                extra_collections.append(self.vector_store.COLLECTION_FULLTEXT)
+            extra_collections = [
+                name for name in extra_collections if name and name != collection
+            ]
+            if extra_collections:
+                expanded = self.vector_store.search_across_collections(
+                    query_embedding=query_embedding,
+                    collections=extra_collections,
+                    top_k_each=extra_per_collection,
+                    court_filter=filters.court,
+                    case_type_filter=filters.case_type,
+                    year_from=filters.year_from,
+                    year_to=filters.year_to,
+                    verdict_filter=filters.verdict,
+                    exclude_case_id=exclude_case_id,
+                )
+                by_case = {item.case_id: item for item in candidates}
+                for item in expanded:
+                    existing = by_case.get(item.case_id)
+                    if (
+                        existing is None
+                        or item.similarity_score > existing.similarity_score
+                    ):
+                        by_case[item.case_id] = item
+                candidates = list(by_case.values())
+
+        if not candidates:
+            return candidates
+        if len(candidates) == 1:
+            return candidates
+
+        query_terms = self._extract_lexical_query_terms(query_text)
+        lexical_scores = self._bm25_like_scores(query_terms, candidates)
+        vector_scores = {
+            item.case_id: float(item.similarity_score) for item in candidates
+        }
+
+        vec_values = list(vector_scores.values())
+        vec_min = min(vec_values)
+        vec_max = max(vec_values)
+
+        v_weight = float(settings.hybrid_vector_weight)
+        l_weight = float(settings.hybrid_lexical_weight)
+        total = v_weight + l_weight
+        if total <= 0:
+            v_weight, l_weight = 0.7, 0.3
+            total = 1.0
+        v_weight /= total
+        l_weight /= total
+
+        fused: list[SearchResult] = []
+        for item in candidates:
+            if vec_max == vec_min:
+                vector_norm = 0.5
+            else:
+                vector_norm = (item.similarity_score - vec_min) / (vec_max - vec_min)
+            lexical_norm = lexical_scores.get(item.case_id, 0.0)
+            hybrid_score = (v_weight * float(vector_norm)) + (
+                l_weight * float(lexical_norm)
+            )
+            fused.append(
+                SearchResult(
+                    case_id=item.case_id,
+                    case_title=item.case_title,
+                    court=item.court,
+                    date_of_judgment=item.date_of_judgment,
+                    case_type=item.case_type,
+                    verdict=item.verdict,
+                    similarity_score=hybrid_score,
+                    payload=item.payload,
+                )
+            )
+
+        fused.sort(key=lambda item: item.similarity_score, reverse=True)
+        return fused
+
+    def _extract_lexical_query_terms(self, query_text: str) -> set[str]:
+        """Extract high-signal lexical terms for BM25-like matching."""
+        lower = query_text.lower()
+        tokens = re.findall(r"[a-z0-9]{3,}", lower)
+        stop = {
+            "the",
+            "and",
+            "for",
+            "with",
+            "that",
+            "from",
+            "this",
+            "were",
+            "have",
+            "been",
+            "court",
+            "case",
+            "order",
+            "judgment",
+        }
+        filtered = [token for token in tokens if token not in stop]
+        counts = Counter(filtered)
+        top_text_terms = [term for term, _ in counts.most_common(40)]
+
+        metadata = self._extract_query_metadata(query_text)
+        statute_terms = [item.lower() for item in metadata.get("statutes_cited", [])]
+        section_terms = [
+            item.lower().replace(" ", "")
+            for item in metadata.get("sections_invoked", [])
+        ]
+        return set(top_text_terms + statute_terms + section_terms)
+
+    def _bm25_like_scores(
+        self, query_terms: set[str], candidates: list[SearchResult]
+    ) -> dict[int, float]:
+        """Compute BM25-like lexical scores over candidate payload text."""
+        if not query_terms or not candidates:
+            return {item.case_id: 0.0 for item in candidates}
+
+        doc_tokens: dict[int, list[str]] = {}
+        doc_len: dict[int, int] = {}
+        term_doc_freq: Counter[str] = Counter()
+
+        for item in candidates:
+            payload = item.payload or {}
+            blob = " ".join(
+                [
+                    str(payload.get("case_title", "") or ""),
+                    " ".join(payload.get("headnotes", []) or []),
+                    str(payload.get("court_reasoning", "") or ""),
+                    str(payload.get("full_text", "") or "")[:2500],
+                    " ".join(payload.get("statutes_cited", []) or []),
+                    " ".join(payload.get("sections_invoked", []) or []),
+                ]
+            ).lower()
+            tokens = re.findall(r"[a-z0-9]{2,}", blob)
+            doc_tokens[item.case_id] = tokens
+            doc_len[item.case_id] = len(tokens)
+            unique_terms = set(tokens)
+            for term in query_terms:
+                if term in unique_terms:
+                    term_doc_freq[term] += 1
+
+        avgdl = sum(doc_len.values()) / max(len(doc_len), 1)
+        n_docs = len(candidates)
+        k1 = 1.2
+        b = 0.75
+
+        raw_scores: dict[int, float] = {}
+        for item in candidates:
+            tokens = doc_tokens[item.case_id]
+            tf = Counter(tokens)
+            dl = max(doc_len[item.case_id], 1)
+            score = 0.0
+            for term in query_terms:
+                term_freq = tf.get(term, 0)
+                if term_freq <= 0:
+                    continue
+                df = term_doc_freq.get(term, 0)
+                idf = math.log(1.0 + ((n_docs - df + 0.5) / (df + 0.5)))
+                numerator = term_freq * (k1 + 1.0)
+                denominator = term_freq + k1 * (1 - b + b * (dl / max(avgdl, 1.0)))
+                score += idf * (numerator / max(denominator, 1e-6))
+            raw_scores[item.case_id] = score
+
+        values = list(raw_scores.values())
+        if not values:
+            return {item.case_id: 0.0 for item in candidates}
+        vmin = min(values)
+        vmax = max(values)
+        if vmax == vmin:
+            return {case_id: 0.0 for case_id in raw_scores}
+
+        return {
+            case_id: (score - vmin) / (vmax - vmin)
+            for case_id, score in raw_scores.items()
         }
 
     def _looks_like_legal_text(self, query_text: str, query_metadata: dict) -> bool:
@@ -451,7 +848,7 @@ class SimilarCaseSearchEngine:
         """Extract statutory sections/articles from text."""
         sections = set()
         for match in re.findall(
-            r"\b(?:section|sections|sec\.?|u/s)\s+([0-9a-z\s,/&-]+)", text
+            r"\b(?:section|sections|sec\.?|u/s)\s+([0-9a-z\s,/&().-]+)", text
         ):
             for part in re.findall(r"[0-9]{1,4}[a-z]?", match):
                 sections.add(f"Section {part.upper()}")
@@ -463,6 +860,13 @@ class SimilarCaseSearchEngine:
             sections.add(f"IPC {match.upper()}")
         for match in re.findall(r"\bcrpc\s+([0-9]{1,4}[a-z]?)", text):
             sections.add(f"CrPC {match.upper()}")
+        for match in re.findall(
+            r"\b(?:under|u/s)\s+([0-9]{1,4}[a-z]?)\s+of\s+(?:the\s+)?([a-z][a-z\s]{2,40}act)",
+            text,
+        ):
+            section_no, act_name = match
+            act = " ".join(word.capitalize() for word in act_name.split())
+            sections.add(f"Section {section_no.upper()} {act}")
 
         return sorted(sections)
 
@@ -505,12 +909,16 @@ class SimilarCaseSearchEngine:
             term in text
             for term in [
                 "contract",
+                "civil jurisdiction",
+                "original civil",
                 "civil suit",
                 "plaintiff",
                 "damages",
                 "property",
                 "decree",
                 "cs no",
+                "cs/",
+                "title suit",
                 "o.s.",
             ]
         ):
@@ -643,6 +1051,7 @@ class SimilarCaseSearchEngine:
             r"high court of judicature at ([a-z &]+)",
             r"high court of judicature of ([a-z &]+)",
             r"high court of ([a-z &]+)",
+            r"high court at ([a-z &]+)",
             r"supreme court of india",
         ]
         for pattern in patterns:
@@ -651,8 +1060,31 @@ class SimilarCaseSearchEngine:
                 if "supreme court" in pattern:
                     return "Supreme Court of India"
                 name = match.group(1).strip()
+                stop_tokens = {
+                    "original",
+                    "side",
+                    "appellate",
+                    "civil",
+                    "criminal",
+                    "jurisdiction",
+                    "bench",
+                    "ordinary",
+                    "special",
+                    "ia",
+                    "no",
+                    "coram",
+                    "before",
+                }
+                name_parts = [part for part in name.split() if part]
+                cleaned_parts = []
+                for part in name_parts:
+                    if part in stop_tokens:
+                        break
+                    cleaned_parts.append(part)
+                name = " ".join(cleaned_parts[:4])
                 name = " ".join(word.capitalize() for word in name.split())
-                return f"High Court of {name}"
+                if name:
+                    return f"High Court of {name}"
         return None
 
     def _build_query_summary(self, query_text: str, filters: SearchFilters) -> str:

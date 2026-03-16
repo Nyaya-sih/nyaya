@@ -147,3 +147,60 @@ def test_get_collection_stats():
     store.client = DummyQdrantClient()
     stats = store.get_collection_stats()
     assert store.COLLECTION_COMBINED in stats
+
+
+def test_search_across_collections_deduplicates_by_best_score():
+    """Cross-collection search should keep best score per case ID."""
+
+    class MultiClient(DummyQdrantClient):
+        def search(self, collection_name, query_vector, limit, query_filter=None):
+            if collection_name == VectorStore.COLLECTION_COMBINED:
+                return [
+                    DummySearchHit(
+                        {
+                            "case_id": 1,
+                            "case_title": "Case One",
+                            "court": "Court",
+                            "date_of_judgment": "2024-01-01",
+                            "case_type": "Criminal",
+                            "verdict": "Convicted",
+                        },
+                        0.6,
+                    )
+                ]
+            return [
+                DummySearchHit(
+                    {
+                        "case_id": 1,
+                        "case_title": "Case One",
+                        "court": "Court",
+                        "date_of_judgment": "2024-01-01",
+                        "case_type": "Criminal",
+                        "verdict": "Convicted",
+                    },
+                    0.8,
+                ),
+                DummySearchHit(
+                    {
+                        "case_id": 2,
+                        "case_title": "Case Two",
+                        "court": "Court",
+                        "date_of_judgment": "2023-01-01",
+                        "case_type": "Civil",
+                        "verdict": "Allowed",
+                    },
+                    0.7,
+                ),
+            ]
+
+    store = VectorStore()
+    store.client = MultiClient()
+
+    merged = store.search_across_collections(
+        query_embedding=np.zeros(3072),
+        collections=[store.COLLECTION_COMBINED, store.COLLECTION_LEGAL],
+        top_k_each=5,
+    )
+    assert len(merged) == 2
+    assert merged[0].case_id == 1
+    assert merged[0].similarity_score == 0.8

@@ -48,10 +48,14 @@ class Settings(BaseSettings):
         description="Number of vector candidates before reranking",
     )
     reranker_candidate_limit: int = Field(
-        default=10,
+        default=14,
         ge=5,
         le=100,
         description="Maximum candidates passed to reranker",
+    )
+    reranker_model_name: str = Field(
+        default="cross-encoder/ms-marco-MiniLM-L-6-v2",
+        description="Cross-encoder model name used for reranking",
     )
     similarity_threshold: float = Field(
         default=0.5,
@@ -86,6 +90,28 @@ class Settings(BaseSettings):
         ge=0.0,
         le=1.0,
         description="Weight for cross-encoder score in final rerank blend",
+    )
+    enable_hybrid_retrieval: bool = Field(
+        default=True,
+        description="Blend semantic vector retrieval with lexical overlap scoring",
+    )
+    hybrid_vector_weight: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=1.0,
+        description="Weight for vector score in hybrid candidate fusion",
+    )
+    hybrid_lexical_weight: float = Field(
+        default=0.3,
+        ge=0.0,
+        le=1.0,
+        description="Weight for lexical BM25-like score in hybrid fusion",
+    )
+    hybrid_extra_candidates: int = Field(
+        default=0,
+        ge=0,
+        le=150,
+        description="Additional per-collection candidates for hybrid retrieval",
     )
 
     # API Configuration
@@ -201,6 +227,7 @@ class Settings(BaseSettings):
         "enable_llm_explanation",
         "enable_query_llm_metadata",
         "enable_fulltext_search",
+        "enable_hybrid_retrieval",
         mode="before",
     )
     @classmethod

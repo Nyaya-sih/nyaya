@@ -63,7 +63,7 @@ export function ResultCard({ result, queryText }: { result: SearchResult; queryT
             {truncate(result.similarity_explanation, 160)}
           </p>
           <div className="mt-4">
-            <DimensionScores scores={result.dimensions} />
+            <DimensionScores scores={result.dimensions} semanticScore={result.combined_score} />
           </div>
         </div>
       </div>

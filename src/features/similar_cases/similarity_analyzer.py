@@ -2,11 +2,11 @@
 Rule-based similarity analyzer.
 
 Computes similarity across 5 dimensions:
-1. Statutory (30%): Overlap of statutes_cited + sections_invoked
-2. Case Type (20%): Same criminal/civil/writ etc.
-3. Court (15%): Same court or different
+1. Statutory (40%): Overlap of statutes_cited + sections_invoked
+2. Case Type (25%): Same criminal/civil/writ etc.
+3. Court (10%): Same court or different
 4. Outcome (20%): Same verdict category (acquit/convict/dismiss/allow/bail)
-5. Temporal (15%): Proximity of judgment years
+5. Temporal (5%): Proximity of judgment years
 
 Also generates LLM explanations on-demand (not for every result).
 """
@@ -139,11 +139,11 @@ class SimilarityAnalyzer:
         )
 
         weights = {
-            "Statutory": 0.30,
-            "Case Type": 0.20,
-            "Court": 0.15,
+            "Statutory": 0.40,
+            "Case Type": 0.25,
+            "Court": 0.10,
             "Outcome": 0.20,
-            "Temporal": 0.15,
+            "Temporal": 0.05,
         }
         weighted_dimension_score = (
             statutory_dim.score * weights["Statutory"]
@@ -268,7 +268,8 @@ class SimilarityAnalyzer:
                 temperature=0.2,
                 max_tokens=400,
             )
-            return response.choices[0].message.content.strip()
+            content = response.choices[0].message.content
+            return (content or "").strip()
         except Exception as exc:
             logger.error("LLM explanation failed", error=str(exc))
             return "LLM explanation failed. Please try again later."

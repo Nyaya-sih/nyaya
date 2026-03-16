@@ -94,6 +94,24 @@ def test_extract_query_metadata_statutes():
     assert "IPC" in metadata["statutes_cited"]
 
 
+def test_extract_query_metadata_civil_jurisdiction_keywords():
+    """Civil jurisdiction phrases should map to Civil case type."""
+    engine = _build_engine()
+    metadata = engine._extract_query_metadata(
+        "Ordinary Original Civil Jurisdiction in a title suit"
+    )
+    assert metadata["case_type"] == "Civil"
+
+
+def test_extract_query_metadata_high_court_at_pattern():
+    """Court parser should support 'High Court at <city>' format."""
+    engine = _build_engine()
+    metadata = engine._extract_query_metadata(
+        "IN THE HIGH COURT AT CALCUTTA ORIGINAL SIDE"
+    )
+    assert metadata["court"] == "High Court of Calcutta"
+
+
 def test_search_returns_empty_on_no_candidates(monkeypatch):
     """No vector results -> empty response."""
     engine = _build_engine()
@@ -246,6 +264,11 @@ def test_reranker_receives_limited_candidate_pool(monkeypatch):
             return [
                 RankedResult(
                     case_id=c.case_id,
+                    case_title=c.case_title,
+                    court=c.court,
+                    date_of_judgment=c.date_of_judgment,
+                    case_type=c.case_type,
+                    verdict=c.verdict,
                     vector_score=c.similarity_score,
                     rerank_score=c.similarity_score,
                     combined_score=c.similarity_score,

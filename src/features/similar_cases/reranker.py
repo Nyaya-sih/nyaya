@@ -56,8 +56,9 @@ class CrossEncoderReranker:
             )
         if CrossEncoder is None:
             raise ImportError("CrossEncoder is unavailable")
-        logger.info("Loading cross-encoder model", model=self.MODEL_NAME)
-        self.model = CrossEncoder(self.MODEL_NAME)
+        model_name = settings.reranker_model_name or self.MODEL_NAME
+        logger.info("Loading cross-encoder model", model=model_name)
+        self.model = CrossEncoder(model_name)
         vector_weight = float(settings.reranker_vector_weight)
         rerank_weight = float(settings.reranker_model_weight)
         total_weight = vector_weight + rerank_weight
@@ -73,7 +74,7 @@ class CrossEncoderReranker:
 
         self.vector_weight = vector_weight / total_weight
         self.rerank_weight = rerank_weight / total_weight
-        logger.info("Cross-encoder model loaded", model=self.MODEL_NAME)
+        logger.info("Cross-encoder model loaded", model=model_name)
 
     def _build_query_text(self, query_text: str) -> str:
         """Truncate query to first 1000 chars for cross-encoder.
@@ -84,7 +85,17 @@ class CrossEncoderReranker:
         Returns:
             Truncated query text.
         """
-        return query_text[:1000]
+        legal_markers = []
+        lowered = query_text.lower()
+        if "section" in lowered or "ipc" in lowered or "crpc" in lowered:
+            legal_markers.append("legal_sections_present")
+        if "petitioner" in lowered or "respondent" in lowered:
+            legal_markers.append("parties_present")
+        if "court" in lowered or "judgment" in lowered:
+            legal_markers.append("judgment_context")
+
+        prefix = f"[Legal Query: {', '.join(legal_markers)}] " if legal_markers else ""
+        return (prefix + query_text)[:900]
 
     def _build_candidate_text(self, candidate: dict) -> str:
         """Build candidate text from payload.
@@ -108,20 +119,40 @@ class CrossEncoderReranker:
         if case_type:
             parts.append(f"Type: {case_type}")
 
+        headnotes = candidate.get("headnotes") or []
+        if headnotes:
+            parts.append(f"Headnotes: {'; '.join(headnotes[:3])}")
+
+        statutes = candidate.get("statutes_cited") or []
+        if statutes:
+            parts.append(f"Statutes: {', '.join(statutes[:6])}")
+
+        sections = candidate.get("sections_invoked") or []
+        if sections:
+            parts.append(f"Sections: {', '.join(sections[:8])}")
+
         key_args = candidate.get("key_arguments_petitioner") or ""
         if key_args:
-            parts.append(f"Petitioner Arguments: {key_args[:300]}")
+            parts.append(f"Petitioner Arguments: {key_args[:220]}")
+
+        respondent_args = candidate.get("key_arguments_respondent") or ""
+        if respondent_args:
+            parts.append(f"Respondent Arguments: {respondent_args[:160]}")
 
         reasoning = candidate.get("court_reasoning") or ""
         if reasoning:
-            parts.append(f"Court Reasoning: {reasoning[:300]}")
+            parts.append(f"Court Reasoning: {reasoning[:250]}")
 
         verdict = candidate.get("verdict")
         if verdict:
             parts.append(f"Verdict: {verdict}")
 
+        full_text = candidate.get("full_text") or ""
+        if full_text:
+            parts.append(f"Judgment Excerpt: {full_text[:220]}")
+
         text = " | ".join(parts)
-        return text[:800]
+        return text[:780]
 
     def rerank(
         self, query_text: str, candidates: list, top_k: int = 10

@@ -177,7 +177,13 @@ def search_similar_cases_upload(
             verdict=verdict,
             similarity_mode=similarity_mode,
         )
-        response = search_engine.search(extracted_text, filters=filters, top_k=top_k)
+        response = search_engine.search(
+            extracted_text,
+            filters=filters,
+            top_k=top_k,
+            vector_candidate_k=max(settings.vector_search_candidates, 70),
+            reranker_candidate_limit=max(settings.reranker_candidate_limit, 40),
+        )
         return _convert_search_response(response)
     except HTTPException:
         raise

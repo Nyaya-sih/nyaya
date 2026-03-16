@@ -32,3 +32,8 @@ Phase 2 change tracker (one/two-line per iteration).
 28. (current, uncommitted) - Tuned default candidate pool settings (`VECTOR_SEARCH_CANDIDATES=18`, `RERANKER_CANDIDATE_LIMIT=10`) to stabilize warm-latency p95 under the Phase 2 benchmark target.
 29. (current, uncommitted) - Added `docs/notes/PHASE2_FINAL_STATUS.md` with final gate results and the complete human-judged eval workflow handoff.
 30. (current, uncommitted) - Added `runThese.md` with a full local runbook (setup, infra, indexing, API/frontend launch, validation commands, and shutdown steps).
+31. (current, uncommitted) - Upgraded retrieval pipeline with upload-focused query cleanup, BM25-like lexical fusion, richer reranker inputs, and metadata backfilling (statutes/sections/verdict/case type/court).
+32. (current, uncommitted) - Increased reranking depth for upload flows and introduced hybrid retrieval settings (`ENABLE_HYBRID_RETRIEVAL`, hybrid weights, extra-candidate controls).
+33. (current, uncommitted) - Recalibrated frontend score bars into user-meaningful buckets: `Semantic Match`, `Legal Overlap`, and `Context Match`.
+34. (current, uncommitted) - Re-ran full tests, retrieval eval, and benchmark; quality improved materially while warm p95 remained within the performance gate on tuned runtime settings.
+35. (current, uncommitted) - Updated final status/human-eval docs to mark lawyer-annotation workflow as ready-but-paused until external reviewer availability.

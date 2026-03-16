@@ -378,6 +378,54 @@ class VectorStore:
 
         return output
 
+    def search_across_collections(
+        self,
+        query_embedding: np.ndarray,
+        collections: list[str],
+        top_k_each: int,
+        court_filter: Optional[str] = None,
+        case_type_filter: Optional[str] = None,
+        year_from: Optional[int] = None,
+        year_to: Optional[int] = None,
+        verdict_filter: Optional[str] = None,
+        exclude_case_id: Optional[int] = None,
+    ) -> list[SearchResult]:
+        """Search multiple collections and return deduplicated best hits.
+
+        Keeps the highest vector score per case_id across collections.
+        """
+        best_by_case: dict[int, SearchResult] = {}
+        for collection in collections:
+            try:
+                hits = self.search(
+                    query_embedding=query_embedding,
+                    top_k=top_k_each,
+                    court_filter=court_filter,
+                    case_type_filter=case_type_filter,
+                    year_from=year_from,
+                    year_to=year_to,
+                    verdict_filter=verdict_filter,
+                    collection=collection,
+                    exclude_case_id=exclude_case_id,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "Cross-collection search failed",
+                    collection=collection,
+                    error=str(exc),
+                )
+                continue
+
+            for hit in hits:
+                existing = best_by_case.get(hit.case_id)
+                if existing is None or hit.similarity_score > existing.similarity_score:
+                    best_by_case[hit.case_id] = hit
+
+        merged = sorted(
+            best_by_case.values(), key=lambda item: item.similarity_score, reverse=True
+        )
+        return merged
+
     def get_collection_stats(self) -> dict:
         """Return vectors_count and points_count for all collections."""
         stats = {}

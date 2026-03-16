@@ -2,6 +2,8 @@
 
 This plan upgrades retrieval quality validation from heuristic labels to human-reviewed relevance judgments.
 
+Status: workflow is ready and intentionally paused until reviewer availability.
+
 ## Objective
 
 - Produce a human-judged gold set for similar-case retrieval.
