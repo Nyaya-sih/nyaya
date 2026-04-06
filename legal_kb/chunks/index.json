@@ -1,0 +1,281 @@
+{
+  "generated_at": "2026-04-06T20:54:19.932553+00:00",
+  "total_chunks": 5167,
+  "by_tier": {
+    "0": 1681,
+    "1": 782,
+    "2": 5,
+    "3": 2699
+  },
+  "by_source_type": {
+    "court_rule": 2,
+    "glossary": 50,
+    "procedural_rule": 3,
+    "secondary_source": 2649,
+    "statute": 2463
+  },
+  "by_act": {
+    "constitution_of_india": {
+      "chunk_count": 0,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/constitution_of_india.jsonl"
+    },
+    "bharatiya_nyaya_sanhita_2023": {
+      "chunk_count": 187,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/bharatiya_nyaya_sanhita_2023.jsonl"
+    },
+    "bharatiya_nagarik_suraksha_sanhita_2023": {
+      "chunk_count": 305,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/bharatiya_nagarik_suraksha_sanhita_2023.jsonl"
+    },
+    "bharatiya_sakshya_adhiniyam_2023": {
+      "chunk_count": 85,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/bharatiya_sakshya_adhiniyam_2023.jsonl"
+    },
+    "indian_penal_code_1860": {
+      "chunk_count": 574,
+      "is_superseded": true,
+      "jsonl_path": "legal_kb/chunks/indian_penal_code_1860.jsonl"
+    },
+    "code_of_criminal_procedure_1973": {
+      "chunk_count": 0,
+      "is_superseded": true,
+      "jsonl_path": "legal_kb/chunks/code_of_criminal_procedure_1973.jsonl"
+    },
+    "indian_evidence_act_1872": {
+      "chunk_count": 185,
+      "is_superseded": true,
+      "jsonl_path": "legal_kb/chunks/indian_evidence_act_1872.jsonl"
+    },
+    "code_of_civil_procedure_1908": {
+      "chunk_count": 345,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/code_of_civil_procedure_1908.jsonl"
+    },
+    "indian_contract_act_1872": {
+      "chunk_count": 30,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/indian_contract_act_1872.jsonl"
+    },
+    "transfer_of_property_act_1882": {
+      "chunk_count": 31,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/transfer_of_property_act_1882.jsonl"
+    },
+    "specific_relief_act_1963": {
+      "chunk_count": 44,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/specific_relief_act_1963.jsonl"
+    },
+    "limitation_act_1963": {
+      "chunk_count": 17,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/limitation_act_1963.jsonl"
+    },
+    "companies_act_2013": {
+      "chunk_count": 0,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/companies_act_2013.jsonl"
+    },
+    "information_technology_act_2000": {
+      "chunk_count": 53,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/information_technology_act_2000.jsonl"
+    },
+    "consumer_protection_act_2019": {
+      "chunk_count": 60,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/consumer_protection_act_2019.jsonl"
+    },
+    "rti_act_2005": {
+      "chunk_count": 30,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/rti_act_2005.jsonl"
+    },
+    "motor_vehicles_act_1988": {
+      "chunk_count": 257,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/motor_vehicles_act_1988.jsonl"
+    },
+    "pocso_act_2012": {
+      "chunk_count": 15,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/pocso_act_2012.jsonl"
+    },
+    "prevention_of_corruption_act_1988": {
+      "chunk_count": 22,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/prevention_of_corruption_act_1988.jsonl"
+    },
+    "arbitration_and_conciliation_act_1996": {
+      "chunk_count": 56,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/arbitration_and_conciliation_act_1996.jsonl"
+    },
+    "insolvency_and_bankruptcy_code_2016": {
+      "chunk_count": 167,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/insolvency_and_bankruptcy_code_2016.jsonl"
+    },
+    "supreme_court_rules_2013": {
+      "chunk_count": 0,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/supreme_court_rules_2013.jsonl"
+    },
+    "delhi_high_court_rules": {
+      "chunk_count": 1,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/delhi_high_court_rules.jsonl"
+    },
+    "bombay_high_court_rules": {
+      "chunk_count": 0,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/bombay_high_court_rules.jsonl"
+    },
+    "patna_high_court_rules": {
+      "chunk_count": 1,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/patna_high_court_rules.jsonl"
+    },
+    "civil_rules_of_practice": {
+      "chunk_count": 3,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/civil_rules_of_practice.jsonl"
+    },
+    "criminal_rules_of_practice": {
+      "chunk_count": 0,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/criminal_rules_of_practice.jsonl"
+    },
+    "cpc_bnss_procedural_mapping_notes": {
+      "chunk_count": 0,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/cpc_bnss_procedural_mapping_notes.jsonl"
+    },
+    "njdg_procedural_guides": {
+      "chunk_count": 3,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/njdg_procedural_guides.jsonl"
+    },
+    "bar_council_of_india_rules": {
+      "chunk_count": 11,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/bar_council_of_india_rules.jsonl"
+    },
+    "law_commission_report_47": {
+      "chunk_count": 0,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/law_commission_report_47.jsonl"
+    },
+    "law_commission_report_69": {
+      "chunk_count": 0,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/law_commission_report_69.jsonl"
+    },
+    "law_commission_report_152": {
+      "chunk_count": 0,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/law_commission_report_152.jsonl"
+    },
+    "law_commission_report_172": {
+      "chunk_count": 202,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/law_commission_report_172.jsonl"
+    },
+    "law_commission_report_177": {
+      "chunk_count": 172,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/law_commission_report_177.jsonl"
+    },
+    "law_commission_report_198": {
+      "chunk_count": 386,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/law_commission_report_198.jsonl"
+    },
+    "law_commission_report_227": {
+      "chunk_count": 37,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/law_commission_report_227.jsonl"
+    },
+    "law_commission_report_239": {
+      "chunk_count": 138,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/law_commission_report_239.jsonl"
+    },
+    "law_commission_report_248": {
+      "chunk_count": 594,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/law_commission_report_248.jsonl"
+    },
+    "law_commission_report_262": {
+      "chunk_count": 166,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/law_commission_report_262.jsonl"
+    },
+    "law_commission_report_277": {
+      "chunk_count": 582,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/law_commission_report_277.jsonl"
+    },
+    "law_commission_report_279": {
+      "chunk_count": 358,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/law_commission_report_279.jsonl"
+    },
+    "legal_maxims_glossary": {
+      "chunk_count": 50,
+      "is_superseded": false,
+      "jsonl_path": "legal_kb/chunks/legal_maxims_glossary.jsonl"
+    }
+  },
+  "superseded_acts": [
+    "code_of_criminal_procedure_1973",
+    "indian_evidence_act_1872",
+    "indian_penal_code_1860"
+  ],
+  "failed_parse": [
+    {
+      "act_slug": "bombay_high_court_rules",
+      "reason": "source mismatch - fetched raw file is not target legal instrument"
+    },
+    {
+      "act_slug": "code_of_criminal_procedure_1973",
+      "reason": "no section anchors in IndiaCode fallback html"
+    },
+    {
+      "act_slug": "companies_act_2013",
+      "reason": "source mismatch - fetched raw file is not target legal instrument"
+    },
+    {
+      "act_slug": "constitution_of_india",
+      "reason": "source mismatch - constitution text unavailable in raw file"
+    },
+    {
+      "act_slug": "cpc_bnss_procedural_mapping_notes",
+      "reason": "source mismatch - fetched raw file is not target legal instrument"
+    },
+    {
+      "act_slug": "criminal_rules_of_practice",
+      "reason": "source mismatch - fetched raw file is not target legal instrument"
+    },
+    {
+      "act_slug": "law_commission_report_152",
+      "reason": "scanned PDF - OCR failed"
+    },
+    {
+      "act_slug": "law_commission_report_47",
+      "reason": "scanned PDF - OCR failed"
+    },
+    {
+      "act_slug": "law_commission_report_69",
+      "reason": "scanned PDF - OCR failed"
+    },
+    {
+      "act_slug": "supreme_court_rules_2013",
+      "reason": "source mismatch - fetched raw file is not target legal instrument"
+    }
+  ]
+}

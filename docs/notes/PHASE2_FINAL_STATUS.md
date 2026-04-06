@@ -4,6 +4,8 @@ Date: 2026-03-16
 
 Phase 2 engineering scope is complete for the current heuristic evaluation track, with a fully operational human-judged evaluation workflow in place.
 
+For live project status decisions, use `docs/notes/PROJECT_STATUS.md`.
+
 ## Gate Results
 
 - Tests: `pytest tests/ -q` -> pass (`96 passed`)

@@ -114,6 +114,32 @@ class Settings(BaseSettings):
         description="Additional per-collection candidates for hybrid retrieval",
     )
 
+    # Legal Assistant (Phase 3)
+    assistant_session_ttl_minutes: int = Field(
+        default=180,
+        ge=10,
+        le=1440,
+        description="Assistant session TTL in minutes",
+    )
+    assistant_max_turns: int = Field(
+        default=30,
+        ge=5,
+        le=200,
+        description="Maximum turns retained in assistant session history",
+    )
+    assistant_max_context_chars: int = Field(
+        default=60000,
+        ge=1000,
+        le=500000,
+        description="Maximum context length stored per assistant session",
+    )
+    assistant_max_question_chars: int = Field(
+        default=4000,
+        ge=100,
+        le=20000,
+        description="Maximum supported user question length",
+    )
+
     # API Configuration
     api_host: str = Field(default="0.0.0.0", description="API host")
     api_port: int = Field(default=8000, ge=1, le=65535, description="API port")

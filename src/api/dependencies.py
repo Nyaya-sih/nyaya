@@ -45,3 +45,14 @@ def get_db_session() -> Generator[Session, None, None]:
         yield session
     finally:
         session.close()
+
+
+def get_legal_assistant_service(request: Request):
+    """Return initialized legal assistant service from app state."""
+    assistant_service = getattr(request.app.state, "assistant_service", None)
+    if not assistant_service:
+        raise HTTPException(
+            status_code=503,
+            detail="Legal assistant service not initialized.",
+        )
+    return assistant_service

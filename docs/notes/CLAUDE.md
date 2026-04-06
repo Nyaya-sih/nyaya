@@ -4,7 +4,9 @@
 
 **NyayaAI** is an AI-powered legal research system for Indian High Court judgments. It combines LLM-powered metadata extraction with semantic search to help legal professionals find relevant case law.
 
-**Current Status**: Phase 1 Complete (9,718 quality cases extracted) | Ready for Phase 2 (Similar Case Retrieval)
+**Current Status**: Phase 1 complete | Phase 2 engineering-complete (sign-off pending)
+
+Status source of truth: `docs/notes/PROJECT_STATUS.md`
 
 ---
 
@@ -39,8 +41,12 @@ python scripts/08_download_diverse.py         # Download from diverse courts
 python scripts/11_smart_extract_to_10k.py     # Smart extraction to 10K cases
 python scripts/13_final_validation.py         # Production readiness check
 
-# Phase 2 Scripts (Similar Case Retrieval) - To be implemented
-# Will include: embedding generation, vector indexing, search API, UI
+# Phase 2 Scripts (Similar Case Retrieval)
+python scripts/13_generate_embeddings.py          # Build multi-vector embeddings
+python scripts/14_generate_fulltext_embeddings.py # Build fulltext-lite embeddings
+python scripts/15_benchmark_search.py             # Benchmark retrieval latency
+python scripts/16_verify_index_integrity.py       # Verify db/index/manifest consistency
+python scripts/17_eval_retrieval_quality.py       # Evaluate retrieval quality
 ```
 
 ### Environment Setup
