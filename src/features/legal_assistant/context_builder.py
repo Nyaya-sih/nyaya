@@ -17,6 +17,8 @@ class ContextBuilder:
                 f"\n\n[{idx}] citation_id={chunk.citation_id}"
                 f" source={chunk.source_type}"
                 f" score={chunk.score:.2f}\n"
+                f"act_or_case={chunk.act_or_case}"
+                f" section_or_article={chunk.section_or_article or 'n/a'}\n"
                 f"{chunk.excerpt}"
             )
             if used + len(block) > max_chars:

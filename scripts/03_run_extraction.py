@@ -3,6 +3,7 @@
 Script to run the complete extraction pipeline.
 Extracts text, runs LLM extraction, validates, and loads to database.
 """
+
 import sys
 import time
 from pathlib import Path
@@ -27,7 +28,7 @@ def process_single_case(
     pdf_path: Path,
     pdf_extractor: PDFExtractor,
     metadata_extractor: MetadataExtractor,
-    validator: DataValidator
+    validator: DataValidator,
 ) -> ExtractionResult:
     """
     Process a single case PDF.
@@ -57,8 +58,7 @@ def process_single_case(
         # Extract metadata using LLM
         logger.debug(f"Extracting metadata with LLM", file=pdf_path.name)
         metadata = metadata_extractor.extract_case_metadata(
-            judgment_text=full_text,
-            case_id=pdf_path.stem
+            judgment_text=full_text, case_id=pdf_path.stem
         )
 
         # Validate extracted metadata
@@ -75,7 +75,7 @@ def process_single_case(
             extraction_model=metadata_extractor.llm_client.model,
             extraction_time=extraction_time,
             source_file=str(pdf_path),
-            page_count=page_count
+            page_count=page_count,
         )
 
         logger.info(
@@ -83,7 +83,7 @@ def process_single_case(
             file=pdf_path.name,
             valid=validation.is_valid,
             avg_confidence=f"{metadata.get_average_confidence():.2f}",
-            time=f"{extraction_time:.2f}s"
+            time=f"{extraction_time:.2f}s",
         )
 
         return result
@@ -105,7 +105,9 @@ def main():
     # Check if LLM API key is configured
     if not settings.has_llm_key():
         logger.error("No LLM API key configured!")
-        logger.error("Please set OPENAI_API_KEY, ANTHROPIC_API_KEY, or GOOGLE_API_KEY in .env file")
+        logger.error(
+            "Please set OPENAI_API_KEY, ANTHROPIC_API_KEY, or GEMINI_API_KEY in .env file"
+        )
         sys.exit(1)
 
     logger.info(f"Using LLM: {settings.extraction_model}")
@@ -142,12 +144,14 @@ def main():
     logger.info("")
 
     # Ask user for confirmation
-    logger.info(f"This will process {len(pdf_files)} cases using {settings.extraction_model}")
+    logger.info(
+        f"This will process {len(pdf_files)} cases using {settings.extraction_model}"
+    )
     logger.info(f"Estimated cost: ~${len(pdf_files) * 0.01:.2f} (rough estimate)")
     logger.info("")
 
     response = input("Do you want to continue? (y/n): ")
-    if response.lower() != 'y':
+    if response.lower() != "y":
         logger.info("Cancelled by user")
         sys.exit(0)
 
@@ -168,7 +172,7 @@ def main():
                 pdf_path=pdf_path,
                 pdf_extractor=pdf_extractor,
                 metadata_extractor=metadata_extractor,
-                validator=validator
+                validator=validator,
             )
 
             extraction_results.append(result)
@@ -179,10 +183,7 @@ def main():
 
         except Exception as e:
             stats.failed_extractions += 1
-            stats.extraction_errors.append({
-                "file": pdf_path.name,
-                "error": str(e)
-            })
+            stats.extraction_errors.append({"file": pdf_path.name, "error": str(e)})
 
     # Calculate statistics
     stats.processing_time = sum(r.extraction_time for r in extraction_results)
@@ -211,7 +212,9 @@ def main():
     logger.info(f"  Total cases: {stats.total_cases}")
     logger.info(f"  Successful: {stats.successful_extractions}")
     logger.info(f"  Failed: {stats.failed_extractions}")
-    logger.info(f"  Success rate: {stats.successful_extractions / stats.total_cases * 100:.1f}%")
+    logger.info(
+        f"  Success rate: {stats.successful_extractions / stats.total_cases * 100:.1f}%"
+    )
     logger.info("")
 
     logger.info(f"Quality:")

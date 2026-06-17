@@ -69,7 +69,7 @@ nano .env  # or use any text editor
 # At minimum, add ONE of these:
 OPENAI_API_KEY=sk-your-key-here
 # ANTHROPIC_API_KEY=sk-ant-your-key-here
-# GOOGLE_API_KEY=your-key-here
+# GEMINI_API_KEY=your-key-here
 ```
 
 **Getting API Keys:**

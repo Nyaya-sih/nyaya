@@ -1,28 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --primary-50: #f0f4fa;
-  --primary-100: #dbe3f2;
-  --primary-200: #b8c8e5;
-  --primary-300: #8da5d4;
-  --primary-400: #6282c0;
-  --primary-500: #3d5a99;
-  --primary-600: #2d4373;
-  --primary-700: #1e2d4d;
-  --primary-800: #141f36;
-  --primary-900: #0b1120;
-  --primary-950: #060911;
+  --primary-50: #edf4f8;
+  --primary-100: #d7e7ef;
+  --primary-200: #bad5e2;
+  --primary-300: #95bdd2;
+  --primary-400: #679fbf;
+  --primary-500: #437fa3;
+  --primary-600: #316580;
+  --primary-700: #244b5f;
+  --primary-800: #1a3644;
+  --primary-900: #10232e;
+  --primary-950: #09151d;
 
-  --accent-50: #fefbf0;
-  --accent-100: #fdf4d4;
-  --accent-200: #fbe7a3;
-  --accent-300: #f8d462;
-  --accent-400: #f5c030;
-  --accent-500: #e6a817;
-  --accent-600: #c78510;
-  --accent-700: #a66310;
-  --accent-800: #884e14;
-  --accent-900: #714016;
+  --accent-50: #fff8ed;
+  --accent-100: #ffebcf;
+  --accent-200: #ffd39d;
+  --accent-300: #ffb566;
+  --accent-400: #ff9837;
+  --accent-500: #f97612;
+  --accent-600: #df5a08;
+  --accent-700: #b8440a;
+  --accent-800: #933611;
+  --accent-900: #772f12;
 
   --success: #22c55e;
   --warning: #f59e0b;
@@ -36,38 +36,42 @@
   --verdict-remanded: #f59e0b;
   --verdict-settlement: #8b5cf6;
 
-  --neutral-50: #fafaf9;
-  --neutral-100: #f5f5f4;
-  --neutral-200: #e7e5e4;
-  --neutral-300: #d6d3d1;
-  --neutral-400: #a8a29e;
-  --neutral-500: #78716c;
-  --neutral-600: #57534e;
-  --neutral-700: #44403c;
-  --neutral-800: #292524;
-  --neutral-900: #1c1917;
+  --neutral-50: #f6f7f8;
+  --neutral-100: #eceef1;
+  --neutral-200: #dfe3e8;
+  --neutral-300: #cbd2db;
+  --neutral-400: #9aa5b3;
+  --neutral-500: #6e7987;
+  --neutral-600: #4f5865;
+  --neutral-700: #3b434f;
+  --neutral-800: #252c36;
+  --neutral-900: #171d25;
 
-  --background: #fafaf9;
-  --surface: #ffffff;
-  --surface-alt: #f5f5f4;
-  --border: #e7e5e4;
-  --foreground: #0b1120;
+  --background: #f2f5f8;
+  --surface: #fbfcfe;
+  --surface-alt: #edf1f6;
+  --border: #d8e1ea;
+  --foreground: #101722;
+  --hero-ring: rgba(68, 127, 163, 0.14);
+  --hero-ring-strong: rgba(249, 118, 18, 0.16);
 }
 
 [data-theme="dark"] {
-  --background: #0b1120;
-  --surface: #141f36;
-  --surface-alt: #1e2d4d;
-  --border: #2d4373;
-  --foreground: #f8fafc;
+  --background: #080d13;
+  --surface: #0f1924;
+  --surface-alt: #142230;
+  --border: #1f3346;
+  --foreground: #edf3fb;
+  --hero-ring: rgba(67, 127, 163, 0.2);
+  --hero-ring-strong: rgba(255, 152, 55, 0.2);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-manrope);
   --font-mono: var(--font-jetbrains);
-  --font-serif: var(--font-playfair);
+  --font-serif: var(--font-cormorant);
 }
 
 @layer base {
@@ -78,23 +82,36 @@
   body {
     background: var(--background);
     color: var(--foreground);
-    font-family: var(--font-inter), system-ui, sans-serif;
-    letter-spacing: -0.01em;
+    font-family: var(--font-manrope), sans-serif;
+    letter-spacing: -0.008em;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(1000px 520px at -10% -15%, var(--hero-ring), transparent 70%),
+      radial-gradient(900px 520px at 110% -20%, var(--hero-ring-strong), transparent 68%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent 35%),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 26px,
+        rgba(16, 23, 34, 0.018) 26px,
+        rgba(16, 23, 34, 0.018) 27px
+      );
   }
 
   h1,
   h2,
   h3 {
-    font-family: var(--font-playfair), Georgia, serif;
+    font-family: var(--font-cormorant), serif;
+    letter-spacing: 0.01em;
   }
 }
 
 @layer utilities {
   .bg-legal-gradient {
     background:
-      radial-gradient(1200px 600px at 15% -10%, rgba(245, 192, 48, 0.18), transparent 60%),
-      radial-gradient(1000px 600px at 90% -20%, rgba(45, 67, 115, 0.25), transparent 55%),
-      linear-gradient(180deg, rgba(6, 9, 17, 0.02), transparent 40%);
+      radial-gradient(1200px 600px at 12% -8%, var(--hero-ring-strong), transparent 60%),
+      radial-gradient(900px 580px at 95% -20%, var(--hero-ring), transparent 62%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.32), transparent 40%);
   }
 
   .text-muted {
@@ -104,13 +121,77 @@
   .surface-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 14px 35px rgba(6, 16, 28, 0.08), 0 2px 8px rgba(6, 16, 28, 0.05);
+    backdrop-filter: blur(3px);
   }
 
   .surface-card:hover {
     border-color: var(--accent-300);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .legal-chip {
+    border: 1px solid var(--border);
+    background: color-mix(in hsl, var(--surface) 76%, var(--accent-100) 24%);
+    color: var(--neutral-700);
+    border-radius: 999px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+  }
+
+  .legal-panel {
+    background: linear-gradient(160deg, color-mix(in hsl, var(--surface) 90%, white 10%), var(--surface));
+    border: 1px solid color-mix(in hsl, var(--border) 90%, var(--primary-200) 10%);
+    border-radius: 18px;
+    box-shadow: 0 24px 40px rgba(9, 21, 29, 0.08);
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  }
+
+  .legal-panel:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in hsl, var(--accent-300) 45%, var(--border));
+    box-shadow: 0 28px 46px rgba(9, 21, 29, 0.12);
+  }
+
+  .legal-button-primary {
+    background: linear-gradient(120deg, var(--primary-700), var(--primary-600));
+    color: #fff;
+    border-radius: 999px;
+    border: 1px solid color-mix(in hsl, var(--primary-300) 60%, transparent);
+    box-shadow: 0 10px 20px rgba(36, 75, 95, 0.3);
+    transition: transform 160ms ease, box-shadow 180ms ease, background 180ms ease;
+  }
+
+  .legal-button-primary:hover {
+    background: linear-gradient(120deg, var(--primary-800), var(--primary-700));
+    transform: translateY(-1px);
+    box-shadow: 0 14px 26px rgba(36, 75, 95, 0.35);
+  }
+
+  .legal-button-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 8px 14px rgba(36, 75, 95, 0.3);
+  }
+
+  .legal-button-secondary {
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: color-mix(in hsl, var(--surface) 72%, var(--primary-100) 28%);
+    color: var(--primary-800);
+    transition: transform 160ms ease, border-color 180ms ease, background 180ms ease;
+  }
+
+  .legal-button-secondary:hover {
+    border-color: color-mix(in hsl, var(--accent-300) 35%, var(--border));
+    background: color-mix(in hsl, var(--surface) 66%, var(--accent-100) 34%);
+    transform: translateY(-1px);
+  }
+
+  .legal-button-secondary:active {
+    transform: translateY(0);
   }
 
   .shimmer-border {
@@ -151,7 +232,7 @@
   }
 
   .gradient-text {
-    background: linear-gradient(90deg, #f5c030, #f8d462, #3d5a99);
+    background: linear-gradient(90deg, var(--accent-600), var(--accent-400), var(--primary-500));
     -webkit-background-clip: text;
     color: transparent;
   }

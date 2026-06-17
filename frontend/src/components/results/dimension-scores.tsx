@@ -35,14 +35,14 @@ export function DimensionScores({ scores, semanticScore }: DimensionScoresProps)
     <div className="space-y-2 text-xs">
       {aggregated.map((dimension) => (
         <div key={dimension.name} className="flex items-center gap-3">
-          <span className="w-28 text-[var(--neutral-500)]">{dimension.name}</span>
-          <div className="h-2 flex-1 rounded-full bg-[var(--surface-alt)]">
+          <span className="w-28 text-[var(--neutral-600)]">{dimension.name}</span>
+          <div className="h-2.5 flex-1 rounded-full bg-[var(--surface-alt)]">
             <div
-              className="h-full rounded-full bg-[var(--primary-500)]"
+              className="h-full rounded-full bg-[var(--primary-600)]"
               style={{ width: `${Math.round(dimension.score * 100)}%` }}
             />
           </div>
-          <span className="w-10 text-right text-[var(--neutral-600)]">
+          <span className="w-10 text-right font-semibold text-[var(--neutral-700)]">
             {Math.round(dimension.score * 100)}%
           </span>
         </div>

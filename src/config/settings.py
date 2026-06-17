@@ -5,7 +5,7 @@ Loads configuration from environment variables and .env file.
 
 from typing import List
 import json
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -140,6 +140,25 @@ class Settings(BaseSettings):
         description="Maximum supported user question length",
     )
 
+    # Simulated Courtroom (Phase 4)
+    courtroom_enable_live_llm: bool = Field(
+        default=True,
+        description="Enable live LLM calls for courtroom role analyses",
+    )
+    courtroom_role_model_map: str = Field(
+        default="",
+        description=(
+            "Optional JSON mapping for role->provider/model chains. "
+            "Example: {'Prosecution Counsel':[{'provider':'openai','model':'gpt-4o-mini'}]}"
+        ),
+    )
+    courtroom_max_parallel_roles: int = Field(
+        default=4,
+        ge=1,
+        le=8,
+        description="Maximum parallel role analyses for courtroom runs",
+    )
+
     # API Configuration
     api_host: str = Field(default="0.0.0.0", description="API host")
     api_port: int = Field(default=8000, ge=1, le=65535, description="API port")
@@ -158,8 +177,14 @@ class Settings(BaseSettings):
     anthropic_api_key: str = Field(
         default="", description="Anthropic API key for Claude models"
     )
-    google_api_key: str = Field(
-        default="", description="Google API key for Gemini models"
+    gemini_api_key: str = Field(
+        default="",
+        description="Gemini API key for Gemini models",
+        validation_alias=AliasChoices("GEMINI_API_KEY", "GOOGLE_API_KEY"),
+    )
+    groq_api_key: str = Field(
+        default="",
+        description="Groq API key for Groq-hosted LLM models",
     )
 
     # LLM Model Configuration
@@ -254,6 +279,7 @@ class Settings(BaseSettings):
         "enable_query_llm_metadata",
         "enable_fulltext_search",
         "enable_hybrid_retrieval",
+        "courtroom_enable_live_llm",
         mode="before",
     )
     @classmethod
@@ -275,7 +301,10 @@ class Settings(BaseSettings):
     def has_llm_key(self) -> bool:
         """Check if at least one LLM API key is configured."""
         return bool(
-            self.openai_api_key or self.anthropic_api_key or self.google_api_key
+            self.openai_api_key
+            or self.anthropic_api_key
+            or self.gemini_api_key
+            or self.groq_api_key
         )
 
     def get_available_models(self) -> List[str]:
@@ -285,8 +314,10 @@ class Settings(BaseSettings):
             available.append("openai")
         if self.anthropic_api_key:
             available.append("anthropic")
-        if self.google_api_key:
+        if self.gemini_api_key:
             available.append("google")
+        if self.groq_api_key:
+            available.append("groq")
         return available
 
 

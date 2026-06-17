@@ -21,16 +21,16 @@ export default function CaseDetailPage() {
 
   if (isLoading) {
     return (
-      <Container className="py-10 text-sm text-[var(--neutral-500)]">
-        Loading case details...
+      <Container className="py-10">
+        <div className="legal-panel p-6 text-sm text-[var(--neutral-500)]">Loading case details...</div>
       </Container>
     );
   }
 
   if (!data) {
     return (
-      <Container className="py-10 text-sm text-[var(--neutral-500)]">
-        Case not found.
+      <Container className="py-10">
+        <div className="legal-panel p-6 text-sm text-[var(--neutral-500)]">Case not found.</div>
       </Container>
     );
   }

@@ -18,14 +18,14 @@ export default function ComparePage() {
         description="Review selected cases side-by-side with shared fields highlighted."
       />
       <Container className="space-y-6 pb-20">
-        <div className="flex items-center justify-between">
+        <div className="legal-panel flex items-center justify-between p-4">
           <p className="text-sm text-[var(--neutral-600)]">
             {selectedCaseIds.length} cases selected
           </p>
           <button
             type="button"
             onClick={clearAll}
-            className="text-xs text-[var(--neutral-500)]"
+            className="text-xs text-[var(--neutral-500)] hover:text-[var(--primary-700)]"
           >
             Clear all
           </button>
@@ -36,7 +36,7 @@ export default function ComparePage() {
             <ComparePanel key={caseId} caseId={caseId} />
           ))}
           {selectedCaseIds.length === 0 && (
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 text-sm text-[var(--neutral-500)]">
+            <div className="legal-panel p-6 text-sm text-[var(--neutral-500)]">
               Select cases from the results page to compare.
             </div>
           )}

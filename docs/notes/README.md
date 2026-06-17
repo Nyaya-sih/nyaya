@@ -14,6 +14,13 @@ This directory contains engineering notes, runbooks, and historical snapshots.
 - Phase 2 runbook: `docs/notes/PHASE2_RUNBOOK.md`
 - Human eval plan (deferred execution): `docs/notes/PHASE2_HUMAN_EVAL_PLAN.md`
 - Legal KB scope for Phase 3: `docs/notes/LEGAL_KB_SCOPE.md`
+- Phase 3 complition report: `docs/notes/PHASE3_COMPLITION.md`
+- Phase 4 simulated courtroom plan: `docs/notes/PHASE_4_PLAN.md`
+- Phase 4 complition report: `docs/notes/PHASE4_COMPLITION.md`
+- Phase 5 outcome tendency plan: `docs/notes/PHASE_5_PLAN.md`
+- Phase 5 complition report: `docs/notes/PHASE5_COMPLITION.md`
+- Phase 5 runbook: `docs/notes/PHASE5_RUNBOOK.md`
+- Phase 5 release checklist: `docs/notes/PHASE5_RELEASE_CHECKLIST.md`
 
 ## Historical Snapshot Docs (Retired for live status)
 

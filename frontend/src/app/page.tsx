@@ -3,161 +3,125 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Container } from "@/components/layout/container";
-import { GradientText } from "@/components/shared/gradient-text";
-import { AnimatedCounter } from "@/components/shared/animated-counter";
-import { SpotlightCard } from "@/components/shared/spotlight-card";
-import { ShimmerCard } from "@/components/shared/shimmer-card";
 import { staggerContainer, staggerItem } from "@/lib/utils/motion";
+import { Scale, Search, MessageSquare, BarChart3 } from "lucide-react";
+import { ParallaxSection } from "@/components/visuals/parallax-section";
 
 export default function Home() {
   return (
     <div className="pb-20">
-      <Container className="pt-20">
-        <ShimmerCard className="bg-legal-gradient">
+      <Container className="pt-16">
+        <div className="legal-panel overflow-hidden p-8 md:p-12">
           <motion.div
             variants={staggerContainer}
             initial="initial"
             animate="animate"
-            className="grid gap-8 md:grid-cols-[1.1fr_0.9fr]"
+            className="grid gap-10 md:grid-cols-[1.05fr_0.95fr]"
           >
             <motion.div variants={staggerItem} className="space-y-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--neutral-500)]">
-                NyayaAI • Similar Case Retrieval
+              <p className="legal-chip inline-flex">
+                NyayaAI Legal Stack
               </p>
-              <h1 className="text-4xl font-semibold leading-tight text-[var(--primary-900)] md:text-5xl">
-                <GradientText>Find precedents that matter</GradientText>
+              <h1 className="text-4xl font-semibold leading-[1.05] text-[var(--primary-900)] md:text-6xl">
+                Litigation intelligence, built for actual court workflows.
               </h1>
-              <p className="text-sm text-[var(--neutral-600)] md:text-base">
-                AI-powered case law research for Indian High Court judgments. Surface the most relevant
-                precedents with multi-dimensional similarity scoring and transparent reasoning.
+              <p className="max-w-2xl text-base leading-7 text-[var(--neutral-600)]">
+                Move from raw facts to strategic case understanding through a connected workspace: precedent
+                retrieval, citation-grounded assistant answers, simulated courtroom deliberation, and outcome tendency analysis.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
                   href="/search"
-                  className="rounded-full bg-[var(--primary-700)] px-6 py-3 text-sm font-semibold text-white"
+                  className="legal-button-primary px-6 py-3 text-sm font-semibold"
                 >
-                  Upload Case Document
+                  Start Similar Case Search
                 </Link>
                 <Link
-                  href="/search"
-                  className="rounded-full border border-[var(--border)] px-6 py-3 text-sm text-[var(--neutral-700)]"
+                  href="/assistant"
+                  className="legal-button-secondary px-6 py-3 text-sm font-semibold"
                 >
-                  Search by Text
+                  Open Legal Assistant
                 </Link>
               </div>
             </motion.div>
             <motion.div variants={staggerItem} className="space-y-4">
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
-                <p className="text-xs uppercase text-[var(--neutral-500)]">Live intelligence</p>
-                <p className="mt-2 text-2xl font-semibold text-[var(--primary-900)]">
-                  Cross-encoder precision ranking
-                </p>
-                <p className="mt-3 text-sm text-[var(--neutral-600)]">
-                  Compare factual, legal, and outcome similarity with weighted scoring and explanations.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
-                <p className="text-xs uppercase text-[var(--neutral-500)]">Trust & transparency</p>
-                <p className="mt-2 text-2xl font-semibold text-[var(--primary-900)]">
-                  Built for legal professionals
-                </p>
-                <p className="mt-3 text-sm text-[var(--neutral-600)]">
-                  Clear disclaimers, auditable sources, and confidence indicators in every report.
-                </p>
+                <p className="text-xs uppercase tracking-[0.1em] text-[var(--neutral-500)]">Matter cockpit</p>
+                <div className="mt-4 space-y-4 text-sm text-[var(--neutral-700)]">
+                  {[
+                    ["Search", "Multidimensional precedent retrieval", Search],
+                    ["Assistant", "Citation-grounded legal responses", MessageSquare],
+                    ["Courtroom", "Role-based legal argument stress-test", Scale],
+                    ["Tendency", "Historical tendency and bias-aware confidence", BarChart3],
+                  ].map(([name, description, Icon]) => (
+                    <div key={String(name)} className="flex items-center gap-3">
+                      <span className="rounded-lg border border-[var(--border)] bg-[var(--surface-alt)] p-2">
+                        <Icon className="h-4 w-4 text-[var(--primary-700)]" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-[var(--primary-900)]">{name}</p>
+                        <p className="text-xs text-[var(--neutral-600)]">{description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           </motion.div>
-        </ShimmerCard>
-      </Container>
-
-      <Container className="mt-14">
-        <div className="grid gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center md:grid-cols-4 md:text-left">
-          <div>
-            <p className="text-xs text-[var(--neutral-500)]">Indexed cases</p>
-            <p className="text-2xl font-semibold text-[var(--primary-900)]">
-              <AnimatedCounter value={9718} suffix="+" />
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-[var(--neutral-500)]">Courts covered</p>
-            <p className="text-2xl font-semibold text-[var(--primary-900)]">
-              <AnimatedCounter value={43} />
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-[var(--neutral-500)]">Years of data</p>
-            <p className="text-2xl font-semibold text-[var(--primary-900)]">
-              <AnimatedCounter value={13} />
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-[var(--neutral-500)]">Similarity layers</p>
-            <p className="text-2xl font-semibold text-[var(--primary-900)]">
-              <AnimatedCounter value={5} />
-            </p>
-          </div>
         </div>
       </Container>
 
-      <Container className="mt-16">
-        <motion.div
-          variants={staggerContainer}
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true }}
-          className="grid gap-6 md:grid-cols-3"
-        >
-          {[
-            {
-              title: "1. Upload your case",
-              copy: "Drag a PDF or paste text. We extract structured metadata automatically.",
-            },
-            {
-              title: "2. AI analyzes & matches",
-              copy: "Embeddings and cross-encoder reranking surface the most relevant precedents.",
-            },
-            {
-              title: "3. Review with confidence",
-              copy: "Compare scores, statutes, and reasoning before building your argument.",
-            },
-          ].map((item) => (
-            <motion.div key={item.title} variants={staggerItem}>
-              <SpotlightCard>
-                <h3 className="text-lg font-semibold text-[var(--primary-900)]">{item.title}</h3>
-                <p className="mt-3 text-sm text-[var(--neutral-600)]">{item.copy}</p>
-              </SpotlightCard>
-            </motion.div>
-          ))}
-        </motion.div>
-      </Container>
+      <ParallaxSection offset={14}>
+        <Container className="mt-12">
+          <div className="grid gap-4 md:grid-cols-4">
+            {[
+              ["9,537", "Labeled matters"],
+              ["43", "Courts represented"],
+              ["13", "Years of judgments"],
+              ["4", "Integrated analysis modes"],
+            ].map(([value, label]) => (
+              <div key={String(label)} className="legal-panel p-5">
+                <p className="text-3xl font-semibold text-[var(--primary-900)]">{value}</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.08em] text-[var(--neutral-500)]">{label}</p>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </ParallaxSection>
 
-      <Container className="mt-16">
-        <div className="grid gap-6 md:grid-cols-2">
-          {[
-            {
-              title: "Multi-level similarity",
-              copy: "Factual, legal, outcome, court, and temporal scores in every result.",
-            },
-            {
-              title: "Smart filters",
-              copy: "Filter by court, case type, date range, and verdict instantly.",
-            },
-            {
-              title: "Cross-encoder reranking",
-              copy: "Precision-first ranking to avoid missing the most relevant precedents.",
-            },
-            {
-              title: "AI-powered explanations",
-              copy: "Understand why a case was suggested and how it aligns to your facts.",
-            },
-          ].map((item) => (
-            <SpotlightCard key={item.title}>
-              <h3 className="text-lg font-semibold text-[var(--primary-900)]">{item.title}</h3>
-              <p className="mt-3 text-sm text-[var(--neutral-600)]">{item.copy}</p>
-            </SpotlightCard>
-          ))}
-        </div>
-      </Container>
+      <ParallaxSection offset={22}>
+        <Container className="mt-16">
+          <motion.div
+            variants={staggerContainer}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+            className="grid gap-6 md:grid-cols-3"
+          >
+            {[
+              {
+                title: "1. Submit matter details",
+                copy: "Upload a file or paste raw facts. The system normalizes source text for downstream analysis.",
+              },
+              {
+                title: "2. Run layered legal analysis",
+                copy: "Search, assistant, courtroom, and tendency engines generate complementary legal signals.",
+              },
+              {
+                title: "3. Audit confidence and caveats",
+                copy: "Review citations, confidence bands, drift flags, and limitations before drafting strategy.",
+              },
+            ].map((item) => (
+              <motion.div key={item.title} variants={staggerItem}>
+                <div className="legal-panel h-full p-6">
+                  <h3 className="text-lg font-semibold text-[var(--primary-900)]">{item.title}</h3>
+                  <p className="mt-3 text-sm text-[var(--neutral-600)]">{item.copy}</p>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </Container>
+      </ParallaxSection>
     </div>
   );
 }

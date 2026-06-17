@@ -15,6 +15,8 @@ import { useCompareStore } from "@/lib/stores/compare-store";
 import { useSearchStore } from "@/lib/stores/search-store";
 import type { SearchResponse } from "@/lib/api/types";
 import { useQuery } from "@tanstack/react-query";
+import { motion, useReducedMotion } from "framer-motion";
+import { staggerContainer, staggerItem } from "@/lib/utils/motion";
 
 const SEARCH_STEPS = [
   "Generating embeddings",
@@ -25,6 +27,7 @@ const SEARCH_STEPS = [
 ];
 
 export default function ResultsPage() {
+  const reduceMotion = useReducedMotion();
   const params = useSearchParams();
   const queryText = params.get("q") ?? "";
   const caseId = params.get("caseId") ?? "";
@@ -74,7 +77,7 @@ export default function ResultsPage() {
   return (
     <Container className="space-y-6 pb-20 pt-10">
       {loading && (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
+        <div className="legal-panel p-6">
           <p className="text-sm text-[var(--neutral-600)]">Searching case index...</p>
           <div className="mt-4 space-y-2 text-xs text-[var(--neutral-500)]">
             {SEARCH_STEPS.map((step, index) => (
@@ -86,7 +89,7 @@ export default function ResultsPage() {
           </div>
           <div className="mt-4 h-2 rounded-full bg-[var(--surface-alt)]">
             <div
-              className="h-full rounded-full bg-[var(--accent-400)]"
+              className="h-full rounded-full bg-[var(--accent-500)]"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -97,13 +100,13 @@ export default function ResultsPage() {
         <>
           <ResultsHeader response={effectiveResponse} />
           {effectiveMode !== "full" && (
-            <div className="rounded-xl border border-[var(--accent-400)]/30 bg-[var(--accent-400)]/10 p-4 text-sm text-[var(--neutral-700)]">
+            <div className="legal-panel p-4 text-sm text-[var(--neutral-700)]">
               Search executed in <strong>{effectiveMode}</strong> mode.
               Results may be less precise than full mode.
             </div>
           )}
           {effectiveWarnings.length > 0 && (
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-alt)] p-4 text-sm text-[var(--neutral-700)]">
+            <div className="legal-panel p-4 text-sm text-[var(--neutral-700)]">
               <p className="font-semibold text-[var(--primary-900)]">Search warnings</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 {effectiveWarnings.map((warning) => (
@@ -113,27 +116,34 @@ export default function ResultsPage() {
             </div>
           )}
           <LegalDisclaimer text={effectiveResponse.disclaimer} />
-          <div className="grid gap-4">
+          <motion.div
+            className="grid gap-4"
+            variants={staggerContainer}
+            initial={reduceMotion ? false : "initial"}
+            animate={reduceMotion ? undefined : "animate"}
+          >
             {effectiveResponse.results.length ? (
               effectiveResponse.results.map((result) => (
-                <ResultCard key={result.case_id} result={result} queryText={queryForExplain} />
+                <motion.div key={result.case_id} variants={staggerItem}>
+                  <ResultCard result={result} queryText={queryForExplain} />
+                </motion.div>
               ))
             ) : (
               <NoResults />
             )}
-          </div>
+          </motion.div>
         </>
       )}
 
       {!effectiveResponse && !loading && (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-10 text-center">
+        <div className="legal-panel p-10 text-center">
           <h3 className="text-lg font-semibold text-[var(--primary-900)]">No results to display</h3>
           <p className="mt-2 text-sm text-[var(--neutral-600)]">
             Please run a new search or upload a document.
           </p>
           <Link
             href="/search"
-            className="mt-4 inline-flex rounded-full bg-[var(--primary-700)] px-4 py-2 text-xs font-semibold text-white"
+            className="legal-button-primary mt-4 inline-flex px-4 py-2 text-xs font-semibold"
           >
             Go to Search
           </Link>
@@ -141,14 +151,26 @@ export default function ResultsPage() {
       )}
 
       {!loading && selectedCaseIds.length >= 2 && (
-        <div className="fixed bottom-8 right-8">
+        <motion.div
+          className="fixed bottom-8 right-8"
+          initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+          animate={reduceMotion ? undefined : { opacity: 1, y: [0, -3, 0] }}
+          transition={
+            reduceMotion
+              ? undefined
+              : {
+                  opacity: { duration: 0.2 },
+                  y: { duration: 2.6, repeat: Infinity, ease: "easeInOut" },
+                }
+          }
+        >
           <Link
             href="/compare"
-            className="rounded-full bg-[var(--primary-700)] px-5 py-3 text-xs font-semibold text-white shadow-lg"
+            className="legal-button-primary px-5 py-3 text-xs font-semibold"
           >
             Compare ({selectedCaseIds.length})
           </Link>
-        </div>
+        </motion.div>
       )}
 
       {loading && (

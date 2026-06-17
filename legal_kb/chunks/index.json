@@ -1,22 +1,23 @@
 {
-  "generated_at": "2026-04-06T20:54:19.932553+00:00",
-  "total_chunks": 5167,
+  "generated_at": "2026-04-06T21:58:05.012535+00:00",
+  "total_chunks": 5752,
   "by_tier": {
-    "0": 1681,
-    "1": 782,
-    "2": 5,
+    "0": 2233,
+    "1": 807,
+    "2": 13,
     "3": 2699
   },
   "by_source_type": {
-    "court_rule": 2,
+    "constitution": 483,
+    "court_rule": 3,
     "glossary": 50,
-    "procedural_rule": 3,
+    "procedural_rule": 10,
     "secondary_source": 2649,
-    "statute": 2463
+    "statute": 2557
   },
   "by_act": {
     "constitution_of_india": {
-      "chunk_count": 0,
+      "chunk_count": 483,
       "is_superseded": false,
       "jsonl_path": "legal_kb/chunks/constitution_of_india.jsonl"
     },
@@ -36,12 +37,12 @@
       "jsonl_path": "legal_kb/chunks/bharatiya_sakshya_adhiniyam_2023.jsonl"
     },
     "indian_penal_code_1860": {
-      "chunk_count": 574,
+      "chunk_count": 575,
       "is_superseded": true,
       "jsonl_path": "legal_kb/chunks/indian_penal_code_1860.jsonl"
     },
     "code_of_criminal_procedure_1973": {
-      "chunk_count": 0,
+      "chunk_count": 68,
       "is_superseded": true,
       "jsonl_path": "legal_kb/chunks/code_of_criminal_procedure_1973.jsonl"
     },
@@ -76,7 +77,7 @@
       "jsonl_path": "legal_kb/chunks/limitation_act_1963.jsonl"
     },
     "companies_act_2013": {
-      "chunk_count": 0,
+      "chunk_count": 25,
       "is_superseded": false,
       "jsonl_path": "legal_kb/chunks/companies_act_2013.jsonl"
     },
@@ -121,7 +122,7 @@
       "jsonl_path": "legal_kb/chunks/insolvency_and_bankruptcy_code_2016.jsonl"
     },
     "supreme_court_rules_2013": {
-      "chunk_count": 0,
+      "chunk_count": 1,
       "is_superseded": false,
       "jsonl_path": "legal_kb/chunks/supreme_court_rules_2013.jsonl"
     },
@@ -146,12 +147,12 @@
       "jsonl_path": "legal_kb/chunks/civil_rules_of_practice.jsonl"
     },
     "criminal_rules_of_practice": {
-      "chunk_count": 0,
+      "chunk_count": 1,
       "is_superseded": false,
       "jsonl_path": "legal_kb/chunks/criminal_rules_of_practice.jsonl"
     },
     "cpc_bnss_procedural_mapping_notes": {
-      "chunk_count": 0,
+      "chunk_count": 6,
       "is_superseded": false,
       "jsonl_path": "legal_kb/chunks/cpc_bnss_procedural_mapping_notes.jsonl"
     },
@@ -239,27 +240,15 @@
   "failed_parse": [
     {
       "act_slug": "bombay_high_court_rules",
-      "reason": "source mismatch - fetched raw file is not target legal instrument"
+      "reason": "Rules content inaccessible due auth/session wall"
     },
     {
       "act_slug": "code_of_criminal_procedure_1973",
-      "reason": "no section anchors in IndiaCode fallback html"
+      "reason": "all priority sources failed"
     },
     {
       "act_slug": "companies_act_2013",
-      "reason": "source mismatch - fetched raw file is not target legal instrument"
-    },
-    {
-      "act_slug": "constitution_of_india",
-      "reason": "source mismatch - constitution text unavailable in raw file"
-    },
-    {
-      "act_slug": "cpc_bnss_procedural_mapping_notes",
-      "reason": "source mismatch - fetched raw file is not target legal instrument"
-    },
-    {
-      "act_slug": "criminal_rules_of_practice",
-      "reason": "source mismatch - fetched raw file is not target legal instrument"
+      "reason": "all priority sources failed"
     },
     {
       "act_slug": "law_commission_report_152",
@@ -275,7 +264,7 @@
     },
     {
       "act_slug": "supreme_court_rules_2013",
-      "reason": "source mismatch - fetched raw file is not target legal instrument"
+      "reason": "all priority sources failed"
     }
   ]
 }

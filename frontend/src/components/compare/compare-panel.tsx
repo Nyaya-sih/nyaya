@@ -10,9 +10,9 @@ import type { CaseDetail } from "@/lib/api/types";
 
 function FieldSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <p className="text-[var(--neutral-500)]">{label}</p>
-      <p>{children}</p>
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+      <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--neutral-500)]">{label}</p>
+      <p className="mt-1 text-[13px] text-[var(--neutral-700)]">{children}</p>
     </div>
   );
 }
@@ -70,14 +70,14 @@ export function ComparePanel({ caseId }: { caseId: string }) {
 
   if (!data) {
     return (
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-sm text-[var(--neutral-500)]">
+      <div className="legal-panel p-4 text-sm text-[var(--neutral-500)]">
         Loading {caseId}...
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+    <div className="legal-panel p-4">
       <h3 className="text-lg font-semibold text-[var(--primary-900)]">{data.case_title}</h3>
       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--neutral-500)]">
         <CourtBadge court={data.court} />

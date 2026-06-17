@@ -56,3 +56,25 @@ def get_legal_assistant_service(request: Request):
             detail="Legal assistant service not initialized.",
         )
     return assistant_service
+
+
+def get_courtroom_service(request: Request):
+    """Return initialized courtroom service from app state."""
+    courtroom_service = getattr(request.app.state, "courtroom_service", None)
+    if not courtroom_service:
+        raise HTTPException(
+            status_code=503,
+            detail="Courtroom service not initialized.",
+        )
+    return courtroom_service
+
+
+def get_outcome_tendency_service(request: Request):
+    """Return initialized outcome tendency service from app state."""
+    tendency_service = getattr(request.app.state, "outcome_tendency_service", None)
+    if not tendency_service:
+        raise HTTPException(
+            status_code=503,
+            detail="Outcome tendency service not initialized.",
+        )
+    return tendency_service

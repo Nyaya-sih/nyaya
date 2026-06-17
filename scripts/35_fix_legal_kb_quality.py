@@ -440,16 +440,12 @@ def fetch_section_body(session: requests.Session, query: str) -> str:
         return ""
 
     show_url = f"https://www.indiacode.nic.in/show-data?{query}"
-    try:
-        session.get(show_url, timeout=40)
-    except Exception:
-        pass
 
     try:
         resp = session.get(
             "https://www.indiacode.nic.in/SectionPageContent",
             params={"actid": actid, "sectionID": section_id},
-            timeout=40,
+            timeout=12,
             headers={
                 "Referer": show_url,
                 "X-Requested-With": "XMLHttpRequest",

@@ -10,8 +10,8 @@ from pathlib import Path
 from datetime import datetime
 from collections import Counter
 sys.path.append(str(Path(__file__).parent.parent))
-
 from src.database.models import Case
+
 from src.data_pipeline.loaders.db_loader import DatabaseLoader
 from loguru import logger
 from sqlalchemy import func

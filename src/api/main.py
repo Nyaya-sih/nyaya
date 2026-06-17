@@ -16,8 +16,12 @@ from openai import OpenAI
 
 from src.config.settings import settings
 from src.api.middleware import request_logging_middleware
+from src.features.courtroom.router import router as courtroom_router
+from src.features.courtroom.service import CourtroomService
 from src.features.legal_assistant.router import router as legal_assistant_router
 from src.features.legal_assistant.service import LegalAssistantService
+from src.features.outcome_tendency.router import router as outcome_tendency_router
+from src.features.outcome_tendency.service import OutcomeTendencyService
 from src.features.similar_cases.router import router as similar_cases_router
 from src.features.similar_cases.search_engine import SimilarCaseSearchEngine
 
@@ -35,6 +39,10 @@ async def lifespan(app: FastAPI):
     logger.info("Search engine initialized")
     app.state.assistant_service = LegalAssistantService()
     logger.info("Legal assistant service initialized")
+    app.state.courtroom_service = CourtroomService()
+    logger.info("Courtroom service initialized")
+    app.state.outcome_tendency_service = OutcomeTendencyService()
+    logger.info("Outcome tendency service initialized")
     yield
     logger.info("API shutdown completed")
 
@@ -51,7 +59,9 @@ app.add_middleware(
 
 app.middleware("http")(request_logging_middleware)
 app.include_router(similar_cases_router)
+app.include_router(outcome_tendency_router)
 app.include_router(legal_assistant_router)
+app.include_router(courtroom_router)
 
 
 @app.get("/health")

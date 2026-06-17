@@ -4,7 +4,7 @@
 
 **NyayaAI** is an AI-powered legal research system for Indian High Court judgments. It combines LLM-powered metadata extraction with semantic search to help legal professionals find relevant case law.
 
-**Current Status**: Phase 1 complete | Phase 2 engineering-complete (sign-off pending)
+**Current Status**: Phase 1 complete | Phase 2 engineering-complete (sign-off pending) | Phase 3 complete | Phase 4 engineering-complete (sign-off pending) | Phase 5 complete
 
 Status source of truth: `docs/notes/PROJECT_STATUS.md`
 
@@ -139,7 +139,7 @@ python -c "from src.data_pipeline.loaders.db_loader import DatabaseLoader; impor
 - Loads from `.env` file with environment variable override
 - Key configs:
   - `database_url`: PostgreSQL connection
-  - `openai_api_key`, `anthropic_api_key`, `google_api_key`: LLM providers
+  - `openai_api_key`, `anthropic_api_key`, `gemini_api_key`: LLM providers
   - `extraction_model`: Which LLM to use (default: gpt-4o-mini)
   - `extraction_temperature`: 0.1 for structured extraction
   - `batch_size`, `max_concurrent_requests`: Processing limits

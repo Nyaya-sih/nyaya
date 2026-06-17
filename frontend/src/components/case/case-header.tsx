@@ -6,7 +6,7 @@ import { formatDate } from "@/lib/utils/format-date";
 
 export function CaseHeader({ caseDetail }: { caseDetail: CaseDetail }) {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
+    <div className="legal-panel p-6">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-semibold text-[var(--primary-900)]">
           {caseDetail.case_title}
@@ -16,7 +16,9 @@ export function CaseHeader({ caseDetail }: { caseDetail: CaseDetail }) {
       <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[var(--neutral-600)]">
         <CourtBadge court={caseDetail.court} />
         {caseDetail.date_of_judgment && <span>{formatDate(caseDetail.date_of_judgment)}</span>}
-        <span className="font-mono text-xs">Case ID: {caseDetail.case_id}</span>
+        <span className="rounded-full border border-[var(--border)] bg-[var(--surface-alt)] px-2 py-0.5 font-mono text-xs">
+          Case ID: {caseDetail.case_id}
+        </span>
       </div>
       <div className="mt-4">
         <ConfidenceMeter value={caseDetail.average_confidence} />

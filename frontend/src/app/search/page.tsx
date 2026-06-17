@@ -12,8 +12,13 @@ import { SearchHistory } from "@/components/search/search-history";
 import { useSearchStore } from "@/lib/stores/search-store";
 import { useSearchByText, useSearchByUpload } from "@/lib/hooks/use-search";
 import type { SearchParams } from "@/lib/api/types";
+import { motion, useReducedMotion } from "framer-motion";
+import { staggerContainer, staggerItem } from "@/lib/utils/motion";
+import { BackgroundPaths } from "@/components/ui/background-paths";
+import { Button } from "@/components/ui/button";
 
 export default function SearchPage() {
+  const reduceMotion = useReducedMotion();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const searchMode = useSearchStore((state) => state.searchMode);
@@ -70,28 +75,50 @@ export default function SearchPage() {
         description="Upload a case document or paste text to retrieve relevant precedents."
       />
       <Container className="space-y-8 pb-20">
-        <SearchModeToggle />
-
-        {searchMode === "upload" ? <FileUploadZone /> : <TextSearchInput />}
-
-        <SearchFilters />
-
-        <button
-          type="button"
-          onClick={handleSearch}
-          disabled={!isReady || textSearch.isPending || uploadSearch.isPending}
-          className={`w-full rounded-full py-3 text-sm font-semibold transition ${
-            isReady
-              ? "bg-[var(--primary-700)] text-white"
-              : "bg-[var(--surface-alt)] text-[var(--neutral-400)]"
-          }`}
+        <motion.div
+          className="space-y-8"
+          variants={staggerContainer}
+          initial={reduceMotion ? false : "initial"}
+          animate={reduceMotion ? undefined : "animate"}
         >
-          {textSearch.isPending || uploadSearch.isPending ? "Searching..." : "Search Similar Cases"}
-        </button>
+          <motion.div variants={staggerItem}>
+            <BackgroundPaths compact title="Precision Search" />
+          </motion.div>
 
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
+          <motion.div variants={staggerItem} className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr]">
+            <div className="space-y-6">
+              <div className="legal-panel p-5">
+                <SearchModeToggle />
+              </div>
 
-        <SearchHistory />
+              <div className="legal-panel p-5">
+                {searchMode === "upload" ? <FileUploadZone /> : <TextSearchInput />}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  type="button"
+                  onClick={handleSearch}
+                  disabled={!isReady || textSearch.isPending || uploadSearch.isPending}
+                  className="px-6 py-3 text-sm font-semibold"
+                >
+                  {textSearch.isPending || uploadSearch.isPending ? "Searching..." : "Search Similar Cases"}
+                </Button>
+                <p className="text-xs text-[var(--neutral-500)]">
+                  Retrieval mode: <span className="font-semibold text-[var(--primary-800)]">{similarityMode}</span>
+                </p>
+              </div>
+
+              {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
+
+              <SearchHistory />
+            </div>
+
+            <div className="xl:sticky xl:top-24 xl:h-fit">
+              <SearchFilters />
+            </div>
+          </motion.div>
+        </motion.div>
       </Container>
     </div>
   );

@@ -3,10 +3,12 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Download, SlidersHorizontal } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import type { SearchResponse } from "@/lib/api/types";
 import { exportAsCsv, exportAsJson } from "@/lib/utils/export-results";
 
 export function ResultsHeader({ response }: { response: SearchResponse }) {
+  const reduceMotion = useReducedMotion();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -21,18 +23,23 @@ export function ResultsHeader({ response }: { response: SearchResponse }) {
   }, [open]);
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+    <motion.div
+      className="legal-panel flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between"
+      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+      animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+      transition={{ duration: 0.24, ease: "easeOut" }}
+    >
       <div>
-        <p className="text-sm text-[var(--neutral-500)]">Showing {response.total_results} similar cases</p>
-        <p className="text-lg font-semibold text-[var(--primary-900)]">{response.query_summary}</p>
-        <p className="text-xs text-[var(--neutral-500)]">
+        <p className="legal-chip inline-flex">{response.total_results} matches</p>
+        <p className="mt-3 text-lg font-semibold text-[var(--primary-900)]">{response.query_summary}</p>
+        <p className="mt-1 text-xs uppercase tracking-[0.08em] text-[var(--neutral-500)]">
           Processing {Math.round(response.search_time_ms)}ms
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <Link
           href="/search"
-          className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-4 py-2 text-xs text-[var(--neutral-600)]"
+          className="legal-button-secondary inline-flex items-center gap-2 px-4 py-2 text-xs"
         >
           <SlidersHorizontal className="h-4 w-4" />
           Modify Search
@@ -43,13 +50,13 @@ export function ResultsHeader({ response }: { response: SearchResponse }) {
             onClick={() => setOpen((prev) => !prev)}
             aria-haspopup="true"
             aria-expanded={open}
-            className="inline-flex items-center gap-2 rounded-full bg-[var(--primary-700)] px-4 py-2 text-xs font-semibold text-white"
+            className="legal-button-primary inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold"
           >
             <Download className="h-4 w-4" />
             Export
           </button>
           {open && (
-            <div className="absolute right-0 z-10 mt-2 w-36 rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-lg">
+            <div className="absolute right-0 z-10 mt-2 w-40 rounded-xl border border-[var(--border)] bg-[var(--surface)] py-1 shadow-lg">
               <button
                 type="button"
                 onClick={() => { exportAsCsv(response); setOpen(false); }}
@@ -68,6 +75,6 @@ export function ResultsHeader({ response }: { response: SearchResponse }) {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

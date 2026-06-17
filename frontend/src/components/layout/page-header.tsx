@@ -11,7 +11,7 @@ export function PageHeader({ title, breadcrumb, description }: PageHeaderProps) 
   return (
     <Container className="py-10">
       {breadcrumb && (
-        <div className="mb-3 flex flex-wrap gap-2 text-xs text-[var(--neutral-500)]">
+        <div className="mb-4 flex flex-wrap gap-2 text-[11px] tracking-[0.08em] text-[var(--neutral-500)] uppercase">
           {breadcrumb.map((item, index) => (
             <span key={`${item.label}-${index}`}>
               {item.href ? (
@@ -26,11 +26,11 @@ export function PageHeader({ title, breadcrumb, description }: PageHeaderProps) 
           ))}
         </div>
       )}
-      <h1 className="text-3xl font-semibold text-[var(--primary-900)] md:text-4xl">
+      <h1 className="text-4xl font-semibold text-[var(--primary-900)] md:text-5xl">
         {title}
       </h1>
       {description && (
-        <p className="mt-2 max-w-2xl text-sm text-[var(--neutral-600)]">
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--neutral-600)] md:text-base">
           {description}
         </p>
       )}

@@ -8,7 +8,7 @@ export function FindSimilarButton({ caseId }: { caseId: number }) {
     <button
       type="button"
       onClick={() => router.push(`/results?caseId=${encodeURIComponent(String(caseId))}`)}
-      className="rounded-full bg-[var(--primary-700)] px-4 py-2 text-xs font-semibold text-white"
+      className="legal-button-primary px-4 py-2 text-xs font-semibold"
     >
       Find Similar Cases
     </button>

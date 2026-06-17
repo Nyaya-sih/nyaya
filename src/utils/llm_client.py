@@ -2,11 +2,17 @@
 Unified LLM client supporting multiple providers (OpenAI, Anthropic, Google).
 Includes retry logic, rate limiting, and cost tracking.
 """
+
 import json
 import time
 from typing import Optional, Dict, Any, List
 from enum import Enum
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+)
 from loguru import logger
 
 from src.config.settings import settings
@@ -14,9 +20,11 @@ from src.config.settings import settings
 
 class LLMProvider(str, Enum):
     """Supported LLM providers."""
+
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
+    GROQ = "groq"
 
 
 class LLMClient:
@@ -47,7 +55,10 @@ class LLMClient:
     def _determine_provider(self, provider: Optional[str]) -> LLMProvider:
         """Determine which provider to use based on model name or available keys."""
         if provider:
-            return LLMProvider(provider.lower())
+            normalized = provider.lower().strip()
+            if normalized == "gemini":
+                normalized = "google"
+            return LLMProvider(normalized)
 
         # Auto-detect from model name
         model_lower = settings.extraction_model.lower()
@@ -60,17 +71,28 @@ class LLMClient:
                 raise ValueError("Anthropic API key not configured")
             return LLMProvider.ANTHROPIC
         elif "gemini" in model_lower:
-            if not settings.google_api_key:
+            if not settings.gemini_api_key:
                 raise ValueError("Google API key not configured")
             return LLMProvider.GOOGLE
+        elif (
+            "llama" in model_lower
+            or "mixtral" in model_lower
+            or "gemma" in model_lower
+            or "groq" in model_lower
+        ):
+            if not settings.groq_api_key:
+                raise ValueError("Groq API key not configured")
+            return LLMProvider.GROQ
 
         # Default to first available
         if settings.openai_api_key:
             return LLMProvider.OPENAI
+        elif settings.gemini_api_key:
+            return LLMProvider.GOOGLE
+        elif settings.groq_api_key:
+            return LLMProvider.GROQ
         elif settings.anthropic_api_key:
             return LLMProvider.ANTHROPIC
-        elif settings.google_api_key:
-            return LLMProvider.GOOGLE
         else:
             raise ValueError("No LLM API keys configured")
 
@@ -78,13 +100,23 @@ class LLMClient:
         """Initialize the appropriate LLM client."""
         if self.provider == LLMProvider.OPENAI:
             from openai import OpenAI
+
             return OpenAI(api_key=settings.openai_api_key)
+        elif self.provider == LLMProvider.GROQ:
+            from openai import OpenAI
+
+            return OpenAI(
+                api_key=settings.groq_api_key,
+                base_url="https://api.groq.com/openai/v1",
+            )
         elif self.provider == LLMProvider.ANTHROPIC:
             from anthropic import Anthropic
+
             return Anthropic(api_key=settings.anthropic_api_key)
         elif self.provider == LLMProvider.GOOGLE:
             import google.generativeai as genai
-            genai.configure(api_key=settings.google_api_key)
+
+            genai.configure(api_key=settings.gemini_api_key)
             return genai
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
@@ -93,7 +125,7 @@ class LLMClient:
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
         retry=retry_if_exception_type((Exception,)),
-        reraise=True
+        reraise=True,
     )
     def generate(
         self,
@@ -101,7 +133,7 @@ class LLMClient:
         system_prompt: Optional[str] = None,
         temperature: Optional[float] = None,
         max_tokens: int = 4000,
-        response_format: Optional[Dict[str, Any]] = None
+        response_format: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Generate text completion from LLM.
@@ -116,16 +148,28 @@ class LLMClient:
         Returns:
             Generated text
         """
-        temp = temperature if temperature is not None else settings.extraction_temperature
+        temp = (
+            temperature if temperature is not None else settings.extraction_temperature
+        )
         start_time = time.time()
 
         try:
             if self.provider == LLMProvider.OPENAI:
-                response = self._generate_openai(prompt, system_prompt, temp, max_tokens, response_format)
+                response = self._generate_openai(
+                    prompt, system_prompt, temp, max_tokens, response_format
+                )
+            elif self.provider == LLMProvider.GROQ:
+                response = self._generate_openai(
+                    prompt, system_prompt, temp, max_tokens, response_format
+                )
             elif self.provider == LLMProvider.ANTHROPIC:
-                response = self._generate_anthropic(prompt, system_prompt, temp, max_tokens)
+                response = self._generate_anthropic(
+                    prompt, system_prompt, temp, max_tokens
+                )
             elif self.provider == LLMProvider.GOOGLE:
-                response = self._generate_google(prompt, system_prompt, temp, max_tokens)
+                response = self._generate_google(
+                    prompt, system_prompt, temp, max_tokens
+                )
             else:
                 raise ValueError(f"Unsupported provider: {self.provider}")
 
@@ -134,16 +178,21 @@ class LLMClient:
 
             logger.debug(
                 f"LLM request completed",
-                provider=self.provider,
+                provider=self.provider.value,
                 model=self.model,
                 elapsed=f"{elapsed:.2f}s",
-                request_count=self.request_count
+                request_count=self.request_count,
             )
 
             return response
 
         except Exception as e:
-            logger.error(f"LLM request failed", error=str(e), provider=self.provider, model=self.model)
+            logger.error(
+                f"LLM request failed",
+                error=str(e),
+                provider=self.provider.value,
+                model=self.model,
+            )
             raise
 
     def _generate_openai(
@@ -152,7 +201,7 @@ class LLMClient:
         system_prompt: Optional[str],
         temperature: float,
         max_tokens: int,
-        response_format: Optional[Dict[str, Any]]
+        response_format: Optional[Dict[str, Any]],
     ) -> str:
         """Generate using OpenAI API."""
         messages = []
@@ -176,7 +225,12 @@ class LLMClient:
         # Track usage
         if hasattr(response, "usage"):
             self.total_tokens += response.usage.total_tokens
-            self.total_cost += self._estimate_cost_openai(response.usage.total_tokens)
+            if self.provider == LLMProvider.GROQ:
+                self.total_cost += self._estimate_cost_groq(response.usage.total_tokens)
+            else:
+                self.total_cost += self._estimate_cost_openai(
+                    response.usage.total_tokens
+                )
 
         return response.choices[0].message.content
 
@@ -185,7 +239,7 @@ class LLMClient:
         prompt: str,
         system_prompt: Optional[str],
         temperature: float,
-        max_tokens: int
+        max_tokens: int,
     ) -> str:
         """Generate using Anthropic API."""
         kwargs = {
@@ -205,8 +259,7 @@ class LLMClient:
             total_tokens = response.usage.input_tokens + response.usage.output_tokens
             self.total_tokens += total_tokens
             self.total_cost += self._estimate_cost_anthropic(
-                response.usage.input_tokens,
-                response.usage.output_tokens
+                response.usage.input_tokens, response.usage.output_tokens
             )
 
         return response.content[0].text
@@ -216,7 +269,7 @@ class LLMClient:
         prompt: str,
         system_prompt: Optional[str],
         temperature: float,
-        max_tokens: int
+        max_tokens: int,
     ) -> str:
         """Generate using Google Gemini API."""
         full_prompt = prompt
@@ -229,15 +282,39 @@ class LLMClient:
             generation_config={
                 "temperature": temperature,
                 "max_output_tokens": max_tokens,
-            }
+            },
         )
 
+        text = ""
+        try:
+            text = response.text or ""
+        except Exception:
+            text = ""
+
+        if not text:
+            candidates = getattr(response, "candidates", None) or []
+            for candidate in candidates:
+                content = getattr(candidate, "content", None)
+                parts = getattr(content, "parts", None) or []
+                fragments: list[str] = []
+                for part in parts:
+                    part_text = getattr(part, "text", None)
+                    if part_text:
+                        fragments.append(str(part_text))
+                if fragments:
+                    text = "\n".join(fragments).strip()
+                    if text:
+                        break
+
+        if not text:
+            raise ValueError("Google Gemini returned no text content")
+
         # Google API doesn't provide token counts easily, estimate roughly
-        estimated_tokens = len(full_prompt.split()) + len(response.text.split())
+        estimated_tokens = len(full_prompt.split()) + len(text.split())
         self.total_tokens += estimated_tokens
         self.total_cost += self._estimate_cost_google(estimated_tokens)
 
-        return response.text
+        return text
 
     def _estimate_cost_openai(self, tokens: int) -> float:
         """Estimate cost for OpenAI API call."""
@@ -268,14 +345,18 @@ class LLMClient:
         # Gemini pricing (rough estimate)
         return tokens * 0.0001 / 1000
 
+    def _estimate_cost_groq(self, tokens: int) -> float:
+        """Estimate cost for Groq API call (rough proxy estimate)."""
+        return tokens * 0.0002 / 1000
+
     def get_stats(self) -> Dict[str, Any]:
         """Get usage statistics."""
         return {
-            "provider": self.provider,
+            "provider": self.provider.value,
             "model": self.model,
             "total_requests": self.request_count,
             "total_tokens": self.total_tokens,
-            "estimated_cost": round(self.total_cost, 4)
+            "estimated_cost": round(self.total_cost, 4),
         }
 
     def reset_stats(self) -> None:

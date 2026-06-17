@@ -9,7 +9,7 @@ from src.features.legal_assistant.citation_validator import CitationValidator
 from src.features.legal_assistant.confidence import ConfidenceEstimator
 from src.features.legal_assistant.context_builder import ContextBuilder
 from src.features.legal_assistant.query_parser import QueryParser
-from src.features.legal_assistant.retriever import AssistantRetriever
+from src.features.legal_assistant.retriever import AssistantRetriever, EvidenceChunk
 from src.features.legal_assistant.schemas import (
     AssistantQueryResponse,
     CitationItem,
@@ -111,18 +111,36 @@ class LegalAssistantService:
             question=parsed.normalized_question,
             context_text=session.context_text,
             top_k=top_k,
+            statutes_hint=parsed.statutes_hint,
+            sections_hint=parsed.sections_hint,
         )
         valid_evidence, citation_warnings = self.citation_validator.validate(evidence)
 
+        # Convert internal chunk ids to stable user-facing citation labels.
+        labeled_evidence: list[EvidenceChunk] = []
+        for idx, item in enumerate(valid_evidence, start=1):
+            labeled_evidence.append(
+                EvidenceChunk(
+                    citation_id=f"CIT-{idx}",
+                    source_type=item.source_type,
+                    title=item.title,
+                    act_or_case=item.act_or_case,
+                    section_or_article=item.section_or_article,
+                    excerpt=item.excerpt,
+                    score=item.score,
+                )
+            )
+
         built_context = self.context_builder.build(
             question=parsed.normalized_question,
-            evidence=valid_evidence,
+            evidence=labeled_evidence,
             max_chars=8000,
         )
         answer_text = self.answer_generator.generate(
             question=parsed.normalized_question,
             built_context=built_context,
             has_context=has_context,
+            evidence=labeled_evidence,
         )
 
         self.store.append_message(
@@ -142,11 +160,15 @@ class LegalAssistantService:
                 excerpt=item.excerpt,
                 score=item.score,
             )
-            for item in valid_evidence
+            for item in labeled_evidence
         ]
+        avg_score = (
+            sum(item.score for item in citations) / len(citations) if citations else 0.0
+        )
         confidence = self.confidence_estimator.estimate(
             citation_count=len(citations),
             has_context=has_context,
+            avg_citation_score=avg_score,
         )
 
         warnings = list(citation_warnings)
@@ -164,7 +186,7 @@ class LegalAssistantService:
             confidence=confidence,
             disclaimer=self.DISCLAIMER,
             warnings=warnings,
-            retrieval_mode="placeholder",
+            retrieval_mode="retrieval" if citations else "degraded",
             created_at=datetime.now(timezone.utc),
         )
 

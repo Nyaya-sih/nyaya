@@ -23,7 +23,12 @@ class QueryParser:
         "BNS": re.compile(r"\bbns\b", re.IGNORECASE),
         "BNSS": re.compile(r"\bbnss\b", re.IGNORECASE),
         "Evidence Act": re.compile(r"\bevidence\s+act\b", re.IGNORECASE),
-        "Constitution": re.compile(r"\barticle\s+\d+\b", re.IGNORECASE),
+        "Companies Act": re.compile(r"\bcompanies\s+act\b", re.IGNORECASE),
+        "Consumer Protection Act": re.compile(
+            r"\bconsumer\s+protection\s+act\b", re.IGNORECASE
+        ),
+        "Constitution": re.compile(r"\bconstitution\b", re.IGNORECASE),
+        "Article Query": re.compile(r"\barticle\s+\d+\b", re.IGNORECASE),
     }
     _SECTION_PATTERN = re.compile(r"\b(section|sec\.)\s*\d+[a-zA-Z-]*\b", re.IGNORECASE)
 
