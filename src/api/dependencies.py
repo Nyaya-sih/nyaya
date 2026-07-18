@@ -10,7 +10,7 @@ get_db_session(): Yields SQLAlchemy session, closes in finally
 
 from typing import Generator
 
-from fastapi import Request, HTTPException
+from fastapi import Request, HTTPException, WebSocket
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
@@ -61,6 +61,17 @@ def get_legal_assistant_service(request: Request):
 def get_courtroom_service(request: Request):
     """Return initialized courtroom service from app state."""
     courtroom_service = getattr(request.app.state, "courtroom_service", None)
+    if not courtroom_service:
+        raise HTTPException(
+            status_code=503,
+            detail="Courtroom service not initialized.",
+        )
+    return courtroom_service
+
+
+def get_courtroom_service_ws(websocket: WebSocket):
+    """Return initialized courtroom service from websocket app state."""
+    courtroom_service = getattr(websocket.app.state, "courtroom_service", None)
     if not courtroom_service:
         raise HTTPException(
             status_code=503,

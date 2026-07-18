@@ -9,6 +9,7 @@ import time
 from uuid import uuid4
 
 from src.features.courtroom.cost_tracker import CourtroomCostTracker
+from src.features.courtroom.event_broker import CourtroomEventBroker
 from src.features.courtroom.evaluation_engine import CourtroomEvaluationEngine
 from src.features.courtroom.orchestrator import CourtroomOrchestrator
 from src.features.courtroom.rebuttal_engine import CourtroomRebuttalEngine
@@ -52,6 +53,7 @@ class CourtroomService:
 
     def __init__(self):
         self.store = InMemoryCourtroomRunStore()
+        self.event_broker = CourtroomEventBroker()
         self.orchestrator = CourtroomOrchestrator()
         self.evaluation_engine = CourtroomEvaluationEngine()
         self.rebuttal_engine = CourtroomRebuttalEngine()
@@ -539,10 +541,16 @@ class CourtroomService:
             confidence=max(0.0, min(1.0, float(confidence))),
             timestamp=datetime.now(timezone.utc),
         )
-        stored = self.store.append_trial_event(analysis_id, event.model_dump())
+        event_payload = event.model_dump(mode="json")
+        stored = self.store.append_trial_event(analysis_id, event_payload)
         if stored is None:
             return None
+        self.event_broker.publish(analysis_id, event_payload)
         return event
+
+    def get_trial_events(self, analysis_id: str) -> list[dict[str, object]]:
+        """Return persisted courtroom trial events for replay/backfill."""
+        return self.store.get_trial_events(analysis_id)
 
     def _source_citations(self, run) -> list[Citation]:
         """Build a minimal citation anchor for the source record."""

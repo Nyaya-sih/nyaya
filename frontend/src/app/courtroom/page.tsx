@@ -11,6 +11,7 @@ import {
   useCreateCourtroomAnalysis,
 } from "@/lib/hooks/use-courtroom";
 import type { CourtroomMode } from "@/lib/api/types";
+import { useCourtroomEvents } from "@/lib/hooks/use-courtroom-events";
 import { staggerContainer, staggerItem } from "@/lib/utils/motion";
 
 export default function CourtroomPage() {
@@ -24,6 +25,7 @@ export default function CourtroomPage() {
   const cancel = useCancelCourtroomAnalysis();
   const status = useCourtroomStatus(analysisId, Boolean(analysisId));
   const analysis = useCourtroomAnalysis(analysisId);
+  const courtroomEvents = useCourtroomEvents(analysisId);
 
   const isRunning = useMemo(() => {
     const s = status.data?.status;
@@ -152,6 +154,40 @@ export default function CourtroomPage() {
                 {analysis.data.transparency_dashboard.consensus_meter.toFixed(2)} | Cost $ 
                 {analysis.data.transparency_dashboard.estimated_cost_usd.toFixed(4)}
               </p>
+            </motion.div>
+
+            <motion.div variants={staggerItem} className="legal-panel p-5">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs uppercase text-[var(--neutral-500)]">Live Transcript</p>
+                <p className="text-xs text-[var(--neutral-500)]">
+                  {courtroomEvents.isConnected ? "Connected" : "Replaying"} | {courtroomEvents.events.length} events
+                </p>
+              </div>
+              {courtroomEvents.error && (
+                <p className="mt-2 text-xs text-red-600">{courtroomEvents.error}</p>
+              )}
+              <div className="mt-3 max-h-[420px] space-y-3 overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
+                {courtroomEvents.events.map((event) => (
+                  <div key={event.event_id} className="rounded-lg border border-[var(--border)] bg-white p-3">
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--neutral-500)]">
+                      <span className="font-semibold text-[var(--primary-900)]">{event.role}</span>
+                      <span>{event.stage}</span>
+                      <span>{event.event_type}</span>
+                      <span>R{event.round}</span>
+                      <span>{event.model_provider}/{event.model_id}</span>
+                      <span>conf {event.confidence.toFixed(2)}</span>
+                    </div>
+                    <p className="mt-2 whitespace-pre-wrap text-sm text-[var(--neutral-800)]">
+                      {event.content}
+                    </p>
+                    {event.citations.length > 0 && (
+                      <p className="mt-2 text-xs text-[var(--neutral-500)]">
+                        Citations: {event.citations.map((citation) => citation.section_ref).join(", ")}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
             </motion.div>
 
             <motion.div variants={staggerItem} className="legal-panel p-5">

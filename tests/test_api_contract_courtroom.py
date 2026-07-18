@@ -12,6 +12,7 @@ def _build_client() -> tuple[TestClient, CourtroomService]:
     app = FastAPI()
     app.include_router(router)
     service = CourtroomService()
+    app.state.courtroom_service = service
     app.dependency_overrides[get_courtroom_service] = lambda: service
     return TestClient(app), service
 
@@ -107,3 +108,25 @@ def test_unknown_analysis_returns_404():
 
     res3 = client.post(f"/api/v1/courtroom/analysis/{missing}/cancel")
     assert res3.status_code == 404
+
+
+def test_analysis_events_endpoint_replays_persisted_events():
+    """Events endpoint should return persisted trial events and websocket replay."""
+    client, _ = _build_client()
+    create = client.post(
+        "/api/v1/courtroom/analyze",
+        json={"mode": "quick", "source_type": "text", "case_text": "facts" * 60},
+    )
+    analysis_id = create.json()["analysis_id"]
+
+    events = client.get(f"/api/v1/courtroom/analysis/{analysis_id}/events")
+    assert events.status_code == 200
+    body = events.json()
+    assert len(body) >= 3
+    assert body[0]["stage"] == "ingestion"
+    assert body[-1]["event_type"] == "verdict"
+
+    with client.websocket_connect(f"/api/v1/courtroom/analysis/{analysis_id}/events") as ws:
+        payload = ws.receive_json()
+        assert payload["stage"] == "ingestion"
+        assert payload["event_type"] == "frame"
