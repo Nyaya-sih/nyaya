@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import time
+from uuid import uuid4
 
 from src.features.courtroom.cost_tracker import CourtroomCostTracker
 from src.features.courtroom.evaluation_engine import CourtroomEvaluationEngine
@@ -24,6 +25,7 @@ from src.features.courtroom.scoring import (
 )
 from src.features.courtroom.schemas import (
     CancelCourtroomAnalysisResponse,
+    Citation,
     CourtroomAnalysisResponse,
     CourtroomAnalysisStatusResponse,
     CourtroomAnalyzeRequest,
@@ -31,6 +33,7 @@ from src.features.courtroom.schemas import (
     CourtroomRoleAnalysis,
     CourtroomTransparencyDashboard,
     CreateCourtroomAnalysisResponse,
+    TrialEvent,
 )
 from src.features.courtroom.synthesis_engine import CourtroomSynthesisEngine
 
@@ -97,6 +100,22 @@ class CourtroomService:
         warnings = list(source_warnings)
         tracker = CourtroomCostTracker()
 
+        source_event = self._record_trial_event(
+            analysis_id=run.analysis_id,
+            stage="ingestion",
+            role="moderator",
+            agent_id="supervisor",
+            model_provider="system",
+            model_id="case-framing",
+            round_number=0,
+            event_type="frame",
+            content=self._build_source_frame_summary(payload, source_text, warnings),
+            citations=self._source_citations(run),
+            confidence=0.65,
+        )
+        if source_event is None:
+            warnings.append("Failed to persist courtroom ingestion event.")
+
         # Stage 1: retrieval + role analyses
         self.store.update_stage(
             run.analysis_id,
@@ -117,6 +136,19 @@ class CourtroomService:
                 provider=item.provider or "fallback",
                 model=item.model or "unknown",
                 text=item.analysis_text,
+            )
+            self._record_trial_event(
+                analysis_id=run.analysis_id,
+                stage="group_deliberation",
+                role=item.role_name,
+                agent_id=self._role_agent_id(item.role_name),
+                model_provider=item.provider or "fallback",
+                model_id=item.model or "unknown",
+                round_number=1,
+                event_type="position",
+                content=item.analysis_text,
+                citations=self._role_citations(run, item),
+                confidence=item.confidence,
             )
 
         # Stage 2: anonymous cross-evaluation
@@ -190,6 +222,20 @@ class CourtroomService:
                 self._evaluation_delta_summary(evaluation, second_eval)
             )
 
+            self._record_trial_event(
+                analysis_id=run.analysis_id,
+                stage="rebuttal",
+                role="moderator",
+                agent_id="supervisor",
+                model_provider="system",
+                model_id="rebuttal-manager",
+                round_number=2,
+                event_type="rebuttal",
+                content="\n".join(rebuttal_changes),
+                citations=self._source_citations(run),
+                confidence=self._rebuttal_confidence(revised),
+            )
+
         # Stage 4: judge synthesis
         self.store.update_stage(
             run.analysis_id,
@@ -210,6 +256,36 @@ class CourtroomService:
             provider="fallback",
             model="judge-synthesizer",
             text=synthesis.executive_summary + "\n" + synthesis.recommended_outcome,
+        )
+
+        combined_citations = self._unique_citations_from_roles(
+            run.analysis_id, final_role_analyses
+        )
+        self._record_trial_event(
+            analysis_id=run.analysis_id,
+            stage="judicial",
+            role="judge_panel",
+            agent_id="supervisor",
+            model_provider="system",
+            model_id="judge-synthesizer",
+            round_number=3,
+            event_type="synthesis",
+            content=synthesis.executive_summary,
+            citations=combined_citations,
+            confidence=synthesis.confidence,
+        )
+        self._record_trial_event(
+            analysis_id=run.analysis_id,
+            stage="verdict",
+            role="judge_panel",
+            agent_id="supervisor",
+            model_provider="system",
+            model_id="judge-synthesizer",
+            round_number=4,
+            event_type="verdict",
+            content=synthesis.recommended_outcome,
+            citations=combined_citations,
+            confidence=synthesis.confidence,
         )
 
         total_runtime_ms = int((time.perf_counter() - start) * 1000)
@@ -274,6 +350,7 @@ class CourtroomService:
             rebuttal_changes=run.rebuttal_changes,
             synthesis=run.synthesis,
             transparency_dashboard=run.transparency_dashboard,
+            trial_events=[TrialEvent.model_validate(item) for item in run.trial_events],
             disclaimer=self.DISCLAIMER,
             warnings=run.warnings,
         )
@@ -411,3 +488,122 @@ class CourtroomService:
         second_avg = average_weighted_score(second_pass)
         delta = round(second_avg - first_avg, 2)
         return [f"Second-pass average weighted score: {second_avg} (delta {delta:+})."]
+
+    def _build_source_frame_summary(
+        self,
+        payload: CourtroomAnalyzeRequest,
+        source_text: str,
+        warnings: list[str],
+    ) -> str:
+        """Build a compact ingestion summary for the live trial log."""
+        mode = payload.mode
+        source_label = (
+            f"case_id={payload.case_id}" if payload.source_type == "case_id" else "uploaded text"
+        )
+        warning_note = f" {len(warnings)} warning(s) attached." if warnings else ""
+        return (
+            f"Courtroom intake completed for {source_label} in {mode} mode. "
+            f"Input length: {len(source_text)} characters.{warning_note}"
+        )
+
+    def _record_trial_event(
+        self,
+        *,
+        analysis_id: str,
+        stage: str,
+        role: str,
+        agent_id: str,
+        model_provider: str,
+        model_id: str,
+        round_number: int,
+        event_type: str,
+        content: str,
+        citations: list[Citation],
+        confidence: float,
+        responding_to: str | None = None,
+    ) -> TrialEvent | None:
+        """Create, persist, and return a courtroom trial event."""
+        event = TrialEvent(
+            event_id=f"evt_{uuid4().hex}",
+            session_id=analysis_id,
+            stage=stage,  # type: ignore[arg-type]
+            role=role,
+            agent_id=agent_id,
+            model_provider=model_provider,
+            model_id=model_id,
+            round=round_number,
+            event_type=event_type,  # type: ignore[arg-type]
+            content=content,
+            responding_to=responding_to,
+            citations=citations,
+            confidence=max(0.0, min(1.0, float(confidence))),
+            timestamp=datetime.now(timezone.utc),
+        )
+        stored = self.store.append_trial_event(analysis_id, event.model_dump())
+        if stored is None:
+            return None
+        return event
+
+    def _source_citations(self, run) -> list[Citation]:
+        """Build a minimal citation anchor for the source record."""
+        section_ref = run.input_ref or run.input_source or run.analysis_id
+        return [
+            Citation(
+                doc_id=run.input_ref or run.analysis_id,
+                section_ref=section_ref,
+                quoted_text=None,
+            )
+        ]
+
+    def _role_citations(
+        self, run, item: CourtroomRoleAnalysis
+    ) -> list[Citation]:
+        """Convert role citation strings into structured citation objects."""
+        citations: list[Citation] = []
+        for raw in item.citations:
+            cleaned = str(raw).strip()
+            if not cleaned:
+                continue
+            citations.append(
+                Citation(
+                    doc_id=run.input_ref or run.analysis_id,
+                    section_ref=cleaned,
+                    quoted_text=None,
+                )
+            )
+        return citations
+
+    def _unique_citations_from_roles(
+        self, analysis_id: str, role_analyses: list[CourtroomRoleAnalysis]
+    ) -> list[Citation]:
+        """Collect role citations into a stable, deduplicated list."""
+        seen: set[tuple[str, str]] = set()
+        unique: list[Citation] = []
+        for item in role_analyses:
+            for citation in item.citations:
+                cleaned = str(citation).strip()
+                if not cleaned:
+                    continue
+                key = (item.role_name, cleaned)
+                if key in seen:
+                    continue
+                seen.add(key)
+                unique.append(
+                    Citation(
+                        doc_id=analysis_id,
+                        section_ref=cleaned,
+                        quoted_text=None,
+                    )
+                )
+        return unique
+
+    def _role_agent_id(self, role_name: str) -> str:
+        """Derive a stable agent id from the role name."""
+        return role_name.lower().replace(" ", "_").replace("/", "_")
+
+    def _rebuttal_confidence(self, role_analyses: list[CourtroomRoleAnalysis]) -> float:
+        """Compute a simple confidence proxy for the rebuttal stage."""
+        if not role_analyses:
+            return 0.0
+        avg = sum(item.confidence for item in role_analyses) / len(role_analyses)
+        return max(0.0, min(1.0, avg))

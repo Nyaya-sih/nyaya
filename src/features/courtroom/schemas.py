@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 CourtroomMode = Literal["quick", "full"]
@@ -14,6 +14,26 @@ CourtroomStatus = Literal[
     "degraded",
     "failed",
     "cancelled",
+]
+
+
+CourtroomEventStage = Literal[
+    "ingestion",
+    "group_deliberation",
+    "rebuttal",
+    "judicial",
+    "verdict",
+]
+
+CourtroomEventType = Literal[
+    "frame",
+    "position",
+    "revision",
+    "objection",
+    "rebuttal",
+    "synthesis",
+    "vote",
+    "verdict",
 ]
 
 
@@ -29,6 +49,70 @@ class CourtroomAnalyzeRequest(BaseModel):
     top_k_cases: int = Field(default=6, ge=0, le=20)
     role_model_overrides: dict[str, list[dict[str, str]]] = Field(default_factory=dict)
     max_cost_usd: Optional[float] = Field(default=None, ge=0.0)
+
+
+class Citation(BaseModel):
+    """Structured citation reference used throughout courtroom events."""
+
+    doc_id: str
+    section_ref: str
+    quoted_text: Optional[str] = None
+
+
+class TrialEvent(BaseModel):
+    """Canonical event emitted by the courtroom simulation."""
+
+    model_config = ConfigDict(protected_namespaces=())
+
+    event_id: str
+    session_id: str
+    stage: CourtroomEventStage
+    role: str
+    agent_id: str
+    model_provider: str
+    model_id: str
+    round: int
+    event_type: CourtroomEventType
+    content: str
+    responding_to: Optional[str] = None
+    citations: list[Citation] = Field(default_factory=list)
+    confidence: float = Field(ge=0.0, le=1.0)
+    timestamp: datetime
+
+
+class GroupSynthesis(BaseModel):
+    """Structured output for a role group's final synthesis."""
+
+    role: str
+    final_argument: str
+    key_evidence_cited: list[Citation] = Field(default_factory=list)
+    raw_confidence: float = Field(ge=0.0, le=1.0)
+    agreement_ratio: float = Field(ge=0.0, le=1.0)
+    weighted_confidence: float = Field(ge=0.0, le=1.0)
+    dissent_notes: list[str] = Field(default_factory=list)
+
+
+class JudgeVote(BaseModel):
+    """Single judge panel vote."""
+
+    model_config = ConfigDict(protected_namespaces=())
+
+    agent_id: str
+    model_id: str
+    position: str
+    confidence: float = Field(ge=0.0, le=1.0)
+    is_dissent: bool = False
+
+
+class VerdictRecord(BaseModel):
+    """Final courtroom verdict payload."""
+
+    verdict: str
+    reasoning: str
+    charges_analysis: list[str] = Field(default_factory=list)
+    judge_votes: list[JudgeVote] = Field(default_factory=list)
+    overall_confidence: float = Field(ge=0.0, le=1.0)
+    procedural_flags: list[str] = Field(default_factory=list)
 
 
 class CourtroomCriteriaScores(BaseModel):
@@ -125,6 +209,7 @@ class CourtroomAnalysisResponse(BaseModel):
     rebuttal_changes: list[str] = Field(default_factory=list)
     synthesis: CourtroomSynthesis
     transparency_dashboard: CourtroomTransparencyDashboard
+    trial_events: list[TrialEvent] = Field(default_factory=list)
     disclaimer: str
     warnings: list[str] = Field(default_factory=list)
 

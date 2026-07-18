@@ -66,6 +66,10 @@ def test_get_analysis_and_status_contract():
     assert "evaluation_breakdown" in full_body
     assert "synthesis" in full_body
     assert "transparency_dashboard" in full_body
+    assert "trial_events" in full_body
+    assert len(full_body["trial_events"]) >= 3
+    assert full_body["trial_events"][0]["stage"] == "ingestion"
+    assert full_body["trial_events"][-1]["event_type"] == "verdict"
     assert "score_matrix" in full_body["transparency_dashboard"]
     assert "criteria_averages" in full_body["transparency_dashboard"]
     assert "evaluator_summary" in full_body["transparency_dashboard"]

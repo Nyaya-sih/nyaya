@@ -30,6 +30,7 @@ class StoredCourtroomRun:
     rebuttal_changes: list[str] = field(default_factory=list)
     synthesis: dict[str, Any] = field(default_factory=dict)
     transparency_dashboard: dict[str, Any] = field(default_factory=dict)
+    trial_events: list[dict[str, Any]] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
 
@@ -101,6 +102,38 @@ class InMemoryCourtroomRunStore:
             if warnings:
                 run.warnings.extend(warnings)
             return run
+
+    def append_trial_event(
+        self, analysis_id: str, event: dict[str, Any]
+    ) -> Optional[StoredCourtroomRun]:
+        """Append a single trial event to the run log."""
+        with self._lock:
+            run = self._runs.get(analysis_id)
+            if run is None:
+                return None
+            run.trial_events.append(event)
+            run.updated_at = datetime.now(timezone.utc)
+            return run
+
+    def append_trial_events(
+        self, analysis_id: str, events: list[dict[str, Any]]
+    ) -> Optional[StoredCourtroomRun]:
+        """Append multiple trial events to the run log."""
+        with self._lock:
+            run = self._runs.get(analysis_id)
+            if run is None:
+                return None
+            run.trial_events.extend(events)
+            run.updated_at = datetime.now(timezone.utc)
+            return run
+
+    def get_trial_events(self, analysis_id: str) -> list[dict[str, Any]]:
+        """Return a copy of the persisted trial events."""
+        with self._lock:
+            run = self._runs.get(analysis_id)
+            if run is None:
+                return []
+            return list(run.trial_events)
 
     def set_completed(
         self,
