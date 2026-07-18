@@ -131,12 +131,12 @@ This is the single source of truth for current project phase status and release 
 - Iteration 6 hardening/docs delivered:
   - eval harness: `scripts/41_eval_tendency_quality.py`
   - runbook: `docs/notes/PHASE5_RUNBOOK.md`
-  - release checklist: `docs/notes/PHASE5_RELEASE_CHECKLIST.md`
+  - release checklist: `docs/archive/PHASE5_RELEASE_CHECKLIST.md`
   - latest eval artifact: `data/processed/tendency_eval_report.json`
 - Final sign-off pass executed:
   - benchmark refreshed: `data/processed/tendency_benchmark_report.json`
   - eval refreshed: `data/processed/tendency_eval_report.json`
-  - release checklist status tracked in `docs/notes/PHASE5_RELEASE_CHECKLIST.md`
+  - release checklist status tracked in `docs/archive/PHASE5_RELEASE_CHECKLIST.md`
   - drift sensitivity tuned in `src/features/outcome_tendency/bias_audit.py`
   - current eval snapshot: drift_flag_rate `0.0` (threshold met)
 
