@@ -59,6 +59,26 @@ class Citation(BaseModel):
     quoted_text: Optional[str] = None
 
 
+class PublicEvidence(BaseModel):
+    """Public quotation with server-computed source matching, not truth verification."""
+
+    source_ref: str
+    quote: str
+    relevance: str
+    quote_verified: bool = False
+
+
+class PublicExplanation(BaseModel):
+    """Concise public reasons, never private model chain-of-thought."""
+
+    conclusion_basis: str
+    supporting_evidence: list[PublicEvidence]
+    assumptions: list[str]
+    counterarguments: list[str]
+    uncertainty: list[str]
+    change_summary: Optional[str] = None
+
+
 class TrialEvent(BaseModel):
     """Canonical event emitted by the courtroom simulation."""
 
@@ -78,6 +98,8 @@ class TrialEvent(BaseModel):
     citations: list[Citation] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)
     timestamp: datetime
+    public_explanation: Optional[PublicExplanation] = None
+    confidence_kind: Literal["model_self_assessment"] = "model_self_assessment"
 
 
 class GroupSynthesis(BaseModel):
@@ -136,6 +158,9 @@ class CourtroomRoleAnalysis(BaseModel):
     provider: Optional[str] = None
     model: Optional[str] = None
     degraded: bool = False
+    public_explanation: Optional[PublicExplanation] = None
+    source_evidence: list[dict[str, str]] = Field(default_factory=list)
+    confidence_kind: Literal["model_self_assessment"] = "model_self_assessment"
 
 
 class CourtroomEvaluationItem(BaseModel):
@@ -158,6 +183,21 @@ class CourtroomSynthesis(BaseModel):
     disagreement_points: list[str] = Field(default_factory=list)
     unresolved_issues: list[str] = Field(default_factory=list)
     legal_principles_applied: list[str] = Field(default_factory=list)
+    degraded: bool = False
+
+
+class CourtroomJudgeReview(BaseModel):
+    """Separate judicial gate for the draft, not a simulated automatic approval."""
+
+    approved: bool = False
+    reasoning: str
+    required_changes: list[str] = Field(default_factory=list)
+    confidence: float = Field(ge=0.0, le=1.0)
+    provider: str = "fallback"
+    model: str = "unavailable"
+    degraded: bool = False
+    public_explanation: Optional[PublicExplanation] = None
+    confidence_kind: Literal["model_self_assessment"] = "model_self_assessment"
 
 
 class CourtroomTransparencyDashboard(BaseModel):
@@ -204,11 +244,13 @@ class CourtroomAnalysisResponse(BaseModel):
     created_at: datetime
     completed_at: Optional[datetime] = None
     role_analyses: list[CourtroomRoleAnalysis] = Field(default_factory=list)
+    initial_role_analyses: list[CourtroomRoleAnalysis] = Field(default_factory=list)
     evaluation_breakdown: list[CourtroomEvaluationItem] = Field(default_factory=list)
     rebuttal_enabled: bool = False
     rebuttal_changes: list[str] = Field(default_factory=list)
-    synthesis: CourtroomSynthesis
-    transparency_dashboard: CourtroomTransparencyDashboard
+    synthesis: Optional[CourtroomSynthesis] = None
+    judge_review: Optional[CourtroomJudgeReview] = None
+    transparency_dashboard: Optional[CourtroomTransparencyDashboard] = None
     trial_events: list[TrialEvent] = Field(default_factory=list)
     disclaimer: str
     warnings: list[str] = Field(default_factory=list)

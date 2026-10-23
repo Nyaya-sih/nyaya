@@ -59,8 +59,8 @@ export default function Home() {
                         <Icon className="h-4 w-4 text-[var(--primary-700)]" />
                       </span>
                       <div>
-                        <p className="text-sm font-semibold text-[var(--primary-900)]">{name}</p>
-                        <p className="text-xs text-[var(--neutral-600)]">{description}</p>
+                        <p className="text-sm font-semibold text-[var(--primary-900)]">{String(name)}</p>
+                        <p className="text-xs text-[var(--neutral-600)]">{String(description)}</p>
                       </div>
                     </div>
                   ))}

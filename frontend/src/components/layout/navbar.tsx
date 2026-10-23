@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Scale, Search, MessageSquare, BarChart3, Moon, Sun } from "lucide-react";
+import { Scale, Search, MessageSquare, BarChart3, Moon, Sun, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { Container } from "@/components/layout/container";
 import { useUiStore } from "@/lib/stores/ui-store";
 
-const navItems = [
+const navItems: { label: string; href: string; icon: LucideIcon; disabled?: boolean }[] = [
   { label: "Similar Cases", href: "/search", icon: Search },
   { label: "Courtroom", href: "/courtroom", icon: Scale },
   { label: "Assistant", href: "/assistant", icon: MessageSquare },

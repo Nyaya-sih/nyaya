@@ -2,7 +2,7 @@
 FastAPI app entry point for NyayaAI.
 
 Startup: Initialize SimilarCaseSearchEngine and attach to app.state
-CORS: Allow http://localhost:3000 (for future Next.js frontend)
+CORS: Allow local Next.js development origins
 Include: similar_cases router
 Health: GET /health endpoint
 """

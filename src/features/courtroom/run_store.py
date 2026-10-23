@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from copy import deepcopy
 from datetime import datetime, timezone
 from threading import Lock
 from typing import Any, Optional
@@ -26,6 +27,8 @@ class StoredCourtroomRun:
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = None
     role_analyses: list[dict[str, Any]] = field(default_factory=list)
+    initial_role_analyses: list[dict[str, Any]] = field(default_factory=list)
+    judge_review: Optional[dict[str, Any]] = None
     evaluation_breakdown: list[dict[str, Any]] = field(default_factory=list)
     rebuttal_changes: list[str] = field(default_factory=list)
     synthesis: dict[str, Any] = field(default_factory=dict)
@@ -72,14 +75,23 @@ class InMemoryCourtroomRunStore:
             run = self._runs.get(analysis_id)
             if run is None:
                 return None
-            if run.status not in {"completed", "degraded"}:
+            if run.status != "completed":
                 return None
-            return run
+            return deepcopy(run)
 
     def get_run(self, analysis_id: str) -> Optional[StoredCourtroomRun]:
         """Fetch a run by analysis id."""
         with self._lock:
-            return self._runs.get(analysis_id)
+            return deepcopy(self._runs.get(analysis_id))
+
+    def update_report(self, analysis_id: str, **fragments) -> None:
+        """Persist intermediate report fragments only while the run is active."""
+        with self._lock:
+            run = self._runs.get(analysis_id)
+            if run and run.status in {"queued", "running"}:
+                for name, value in fragments.items():
+                    setattr(run, name, deepcopy(value))
+                run.updated_at = datetime.now(timezone.utc)
 
     def update_stage(
         self,
@@ -93,12 +105,14 @@ class InMemoryCourtroomRunStore:
         """Update run stage metadata."""
         with self._lock:
             run = self._runs.get(analysis_id)
-            if run is None:
+            if run is None or run.status not in {"queued", "running"}:
                 return None
             run.status = status
             run.stage = stage
             run.progress_percent = progress_percent
             run.updated_at = datetime.now(timezone.utc)
+            if status in {"failed", "cancelled"}:
+                run.completed_at = run.updated_at
             if warnings:
                 run.warnings.extend(warnings)
             return run
@@ -109,7 +123,7 @@ class InMemoryCourtroomRunStore:
         """Append a single trial event to the run log."""
         with self._lock:
             run = self._runs.get(analysis_id)
-            if run is None:
+            if run is None or run.status not in {"queued", "running"}:
                 return None
             run.trial_events.append(event)
             run.updated_at = datetime.now(timezone.utc)
@@ -121,7 +135,7 @@ class InMemoryCourtroomRunStore:
         """Append multiple trial events to the run log."""
         with self._lock:
             run = self._runs.get(analysis_id)
-            if run is None:
+            if run is None or run.status not in {"queued", "running"}:
                 return None
             run.trial_events.extend(events)
             run.updated_at = datetime.now(timezone.utc)
@@ -133,7 +147,7 @@ class InMemoryCourtroomRunStore:
             run = self._runs.get(analysis_id)
             if run is None:
                 return []
-            return list(run.trial_events)
+            return deepcopy(run.trial_events)
 
     def set_completed(
         self,
@@ -149,7 +163,7 @@ class InMemoryCourtroomRunStore:
         """Persist final report payload and mark run complete/degraded."""
         with self._lock:
             run = self._runs.get(analysis_id)
-            if run is None:
+            if run is None or run.status not in {"queued", "running"}:
                 return None
             now = datetime.now(timezone.utc)
             run.status = status
@@ -164,7 +178,7 @@ class InMemoryCourtroomRunStore:
             run.rebuttal_changes = rebuttal_changes or []
             if warnings:
                 run.warnings.extend(warnings)
-            if run.run_key and run.status in {"completed", "degraded"}:
+            if run.run_key and run.status == "completed":
                 self._cache[run.run_key] = run.analysis_id
             return run
 

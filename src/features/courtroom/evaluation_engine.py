@@ -8,6 +8,8 @@ import re
 
 from loguru import logger
 
+from src.config.settings import settings
+
 from src.features.courtroom.anonymizer import AnalysisAnonymizer, AnonymousAnalysis
 from src.features.courtroom.model_registry import CourtroomModelRegistry, ModelRoute
 from src.features.courtroom.scoring import weighted_score
@@ -31,6 +33,7 @@ class CourtroomEvaluationEngine:
         self,
         role_analyses: list[CourtroomRoleAnalysis],
         role_model_overrides: dict[str, list[dict[str, str]]] | None = None,
+        *, is_cancelled=lambda: False,
     ) -> tuple[list[CourtroomEvaluationItem], list[str]]:
         """Run anonymous peer evaluation matrix with fallback behavior."""
         warnings: list[str] = []
@@ -40,6 +43,8 @@ class CourtroomEvaluationEngine:
 
         for evaluator in role_analyses:
             for target in anon_items:
+                if is_cancelled():
+                    return items, warnings
                 if evaluator.role_name == target.role_name:
                     continue
                 eval_item, local_warnings = self._evaluate_pair(
@@ -63,7 +68,7 @@ class CourtroomEvaluationEngine:
     ) -> tuple[CourtroomEvaluationItem, list[str]]:
         warnings: list[str] = []
 
-        if not self.live_enabled:
+        if not self.live_enabled or not settings.courtroom_enable_live_llm:
             warnings.append(
                 "Live peer-evaluation disabled in test runtime; deterministic fallback used."
             )

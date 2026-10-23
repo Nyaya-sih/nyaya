@@ -1,0 +1,247 @@
+.courtroom-workspace { color: var(--foreground); }
+.sample-pdf-download { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; color: var(--primary-600); font-size: 12px; }
+.sample-pdf-download:hover { background: var(--surface-alt); }
+.sample-pdf-download small { display: block; font-size: 12px; color: var(--neutral-600); margin-top: 4px; }
+.extraction-meta { margin-top: 12px; font-size: 12px; line-height: 1.7; color: var(--neutral-600); }
+.extraction-warning { font-size: 12px; line-height: 1.7; margin-top: 12px; color: var(--accent-700); padding-left: 12px; border-left: 2px solid var(--accent-400); }
+.transparency-protocol { padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+.transparency-protocol > div { display: flex; align-items: center; gap: 12px; }
+.transparency-protocol h2 { font-size: 24px; }
+.transparency-protocol p { color: var(--neutral-600); font-size: 14px; line-height: 1.8; margin-top: 12px; }
+.transparency-protocol summary { font-size: 12px; margin-top: 16px; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+.case-source-record, .peer-assessments { border: 1px solid var(--border); background: var(--surface); border-radius: 12px; margin-top: 20px; }
+.case-source-record > summary { display: flex; align-items: center; gap: 12px; padding: 20px 24px; cursor: pointer; list-style: none; font-size: 14px; }
+.case-source-record > summary::-webkit-details-marker { display: none; }
+.case-source-record summary > span { flex: 1; min-width: 0; }
+.case-source-record summary small { display: block; color: var(--neutral-600); font-size: 12px; margin-top: 4px; overflow-wrap: anywhere; }
+.case-source-record[open] summary > svg:last-child { transform: rotate(90deg); }
+.source-record-content { border-top: 1px solid var(--border); padding: 20px 24px; }
+.source-record-content > p { font-size: 12px; line-height: 1.8; color: var(--neutral-600); margin-bottom: 16px; }
+.source-record-content pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 400px; overflow-y: auto; font-family: var(--font-jetbrains), monospace; font-size: 12px; line-height: 1.8; padding: 16px; background: var(--background); border-radius: 8px; }
+.source-record-content .context-cutoff { display: block; margin: 20px 0; font-size: 12px; color: var(--accent-700); }
+.source-record-content .excluded-source { color: var(--neutral-600); border: 1px dashed var(--border); }
+.audit-download { display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); padding: 8px 12px; font-size: 12px; cursor: pointer; }
+.audit-download:disabled { opacity: .5; cursor: not-allowed; }
+.self-reported-confidence { font-size: 12px !important; color: var(--neutral-600); margin-top: 12px; }
+.public-explanation { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px; }
+.explanation-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.explanation-heading h3 { font-size: 24px; }
+.explanation-heading > span { margin-left: auto; font-size: 12px; color: var(--neutral-600); }
+.public-explanation h4 { font-size: 12px; letter-spacing: .02em; font-weight: 700; margin-bottom: 8px; }
+.public-explanation p { font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+.public-explanation .conclusion-basis { margin-top: 12px; }
+.evidence-records { margin-top: 24px; }
+.evidence-record { border-left: 2px solid var(--primary-400); padding: 12px 16px; margin-top: 12px; background: var(--surface); border-radius: 0 8px 8px 0; }
+.evidence-reference { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
+.evidence-reference > strong { font-size: 12px; overflow-wrap: anywhere; }
+.evidence-reference > span { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--accent-700); }
+.evidence-reference > span[data-verified="true"] { color: var(--primary-600); }
+.evidence-record blockquote { margin: 12px 0; font-size: 14px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.evidence-record p { color: var(--neutral-600); }
+.evidence-record a { display: inline-block; font-size: 12px; margin-top: 8px; text-decoration: underline; text-underline-offset: 3px; color: var(--primary-600); }
+.explanation-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-top: 24px; }
+.explanation-grid > div { border-top: 1px solid var(--border); padding-top: 16px; min-width: 0; }
+.public-explanation ul { list-style: disc; padding-left: 16px; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+.explanation-grid p, .explanation-grid ul { color: var(--neutral-600); }
+.position-change { margin-top: 20px; background: var(--surface-alt); padding: 16px; border-radius: 8px; }
+.public-explanation .explanation-caveat { font-size: 12px; color: var(--neutral-600); margin-top: 20px; }
+.explanation-unavailable { display: flex; align-items: flex-start; gap: 8px; font-size: 12px !important; color: var(--neutral-600); padding: 16px 0 0; margin-top: 16px; border-top: 1px solid var(--border); }
+.explanation-unavailable svg { flex-shrink: 0; margin-top: 2px; }
+.peer-assessments { padding: 20px 24px; }
+.peer-assessments summary { cursor: pointer; font-size: 14px; }
+.peer-assessments p { font-size: 12px; line-height: 1.8; color: var(--neutral-600); margin-top: 12px; }
+.peer-assessments article { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; font-size: 12px; }
+.peer-assessments article > span { display: block; margin-top: 4px; }
+[data-theme="dark"] .sample-pdf-download, [data-theme="dark"] .evidence-record a, [data-theme="dark"] .evidence-reference > span[data-verified="true"] { color: var(--primary-300); }
+[data-theme="dark"] .extraction-warning, [data-theme="dark"] .evidence-reference > span, [data-theme="dark"] .source-record-content .context-cutoff { color: var(--accent-200); }
+@media (max-width: 767px) { .explanation-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; } .explanation-heading > span { margin-left: 0; } .audit-download { max-width: 136px; } .case-source-record > summary, .source-record-content { padding: 16px; } }
+[data-theme="dark"] .courtroom-workspace { background: var(--background); --neutral-600: var(--primary-200); --neutral-500: var(--primary-300); }
+[data-theme="dark"] .courtroom-eyebrow, [data-theme="dark"] .submission-label, [data-theme="dark"] .submission-citations { color: var(--primary-300); }
+.courtroom-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-bottom: 24px; }
+.courtroom-eyebrow { font-size: 12px; letter-spacing: .12em; font-weight: 600; color: var(--primary-600); }
+.courtroom-heading h1 { font-family: var(--font-manrope), sans-serif; font-size: clamp(28px, 3.4vw, 44px); font-weight: 550; letter-spacing: -.055em; line-height: 1.2; margin: 8px 0 12px; }
+.courtroom-heading > div > p:last-child { color: var(--neutral-600); font-size: 14px; }
+.courtroom-mode { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; font-size: 14px; font-weight: 600; }
+.courtroom-mode span { width: 100%; text-align: right; font-size: 12px; font-weight: 400; color: var(--neutral-600); }
+.courtroom-heading-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; flex-shrink: 0; }
+.report-pdf-button { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 11px 16px; border-radius: 8px; background: var(--primary-800); color: var(--primary-50); border: 1px solid var(--primary-700); font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: transform .2s, background .2s; }
+.report-pdf-button:hover:not(:disabled) { background: var(--primary-700); transform: translateY(-2px); }.report-pdf-button:disabled { opacity: .45; cursor: not-allowed; }
+[data-theme="dark"] .report-pdf-button { background: var(--primary-100); border-color: var(--primary-100); color: var(--primary-950); }
+[data-theme="dark"] .report-pdf-button:hover:not(:disabled) { background: var(--primary-200); }
+.courtroom-notice { display: flex; align-items: flex-start; gap: 12px; padding: 16px 20px; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; background: var(--surface); line-height: 1.6; }
+.courtroom-notice svg { flex-shrink: 0; margin-top: 3px; color: var(--primary-600); }
+.hearing-steps { display: grid; grid-template-columns: repeat(5, 1fr); margin: 28px 0; gap: 12px; }
+.hearing-steps li { display: flex; align-items: center; gap: 8px; color: var(--neutral-600); font-size: 12px; }
+.hearing-steps li > span:first-child { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 50%; flex-shrink: 0; }
+.hearing-steps li[data-state="active"] { color: var(--primary-600); font-weight: 700; }
+.hearing-steps li[data-state="active"] > span:first-child { background: var(--primary-700); color: var(--primary-50); border-color: var(--primary-700); }
+.hearing-steps li[data-state="complete"] > span:first-child { background: var(--primary-100); color: var(--primary-800); }
+.step-arrow { margin-left: auto; flex-shrink: 0; }
+.courtroom-columns { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
+.chamber-column, .courtroom-sidebar { min-width: 0; }
+.courtroom-sidebar { scroll-margin-top: 92px; }
+.courtroom-chamber { --room-wall: #e6ebe8; --room-floor: #d4dcd7; --room-ink: #243d42; --room-line: #b1c0b9; --room-muted: #516c6d; --timber: #836448; --timber-edge: #b59a73; --brass: #c9ab79; position: relative; isolation: isolate; border-radius: 18px; overflow: hidden; color: var(--room-ink); background: var(--room-wall); border: 1px solid var(--border); box-shadow: 0 12px 40px color-mix(in srgb, var(--primary-950) 8%, transparent); }
+[data-theme="dark"] .courtroom-chamber { --room-wall: #13272d; --room-floor: #102027; --room-ink: #dce9e5; --room-line: #345057; --room-muted: #aac1bd; }
+.chamber-topline { position: relative; z-index: 5; display: flex; align-items: center; gap: 16px; justify-content: space-between; font-size: 11px; padding: 16px 20px; border-bottom: 1px solid var(--room-line); color: var(--room-ink); }
+.chamber-topline > span:first-child { display: flex; gap: 8px; align-items: center; }
+.motion-toggle { display: flex; align-items: center; gap: 6px; font-size: 10px; min-height: 30px; padding: 0 8px; border: 1px solid var(--room-line); border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.motion-toggle:hover { background: color-mix(in srgb, var(--room-ink) 8%, transparent); }
+.session-dot { height: 6px; width: 6px; border-radius: 50%; background: var(--primary-300); display: inline-block; flex-shrink: 0; }
+.session-dot-live { background: var(--accent-300); animation: session-pulse 1.8s ease-in-out infinite; }
+.courtroom-scene { height: 680px; position: relative; perspective: 1000px; }
+.room-architecture { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.room-back-wall { position: absolute; inset: 0 0 auto; height: 32%; border-bottom: 2px solid var(--room-line); background: radial-gradient(ellipse at 50% 0, color-mix(in srgb, var(--brass) 16%, transparent), transparent 70%), var(--room-wall); display: flex; justify-content: center; gap: 2%; padding: 24px 24%; }
+.room-back-wall > span { width: 33%; border: 1px solid var(--room-line); border-radius: 48px 48px 0 0; }
+.room-seal { position: absolute; left: 50%; top: 20px; width: 48px; height: 48px; transform: translateX(-50%); border: 1px solid var(--brass); border-radius: 50%; display: grid; place-items: center; color: var(--room-muted); background: var(--room-wall); }
+.room-window { position: absolute; top: 28px; width: 10%; height: 108px; border: 5px solid var(--room-line); border-radius: 48px 48px 2px 2px; background: linear-gradient(90deg, transparent 47%, var(--room-line) 47% 53%, transparent 53%), linear-gradient(0deg, transparent 48%, var(--room-line) 48% 52%, transparent 52%), linear-gradient(140deg, color-mix(in srgb, var(--primary-100) 50%, var(--room-wall)), var(--room-wall)); box-shadow: inset 0 2px 10px color-mix(in srgb, var(--primary-900) 10%, transparent); }
+.window-left { left: 7%; }.window-right { right: 7%; }
+.room-floor { position: absolute; inset: 30% -12% -16%; background: repeating-linear-gradient(90deg, transparent 0 53px, color-mix(in srgb, var(--room-line) 70%, transparent) 53px 54px), repeating-linear-gradient(0deg, transparent 0 42px, color-mix(in srgb, var(--room-line) 45%, transparent) 42px 43px), linear-gradient(var(--room-floor), var(--room-wall)); transform: rotateX(24deg); transform-origin: center top; }
+.room-aisle { position: absolute; left: 37%; right: 37%; top: 35%; bottom: 0; border-inline: 1px solid color-mix(in srgb, var(--brass) 25%, transparent); background: color-mix(in srgb, var(--room-wall) 50%, transparent); transform: perspective(600px) rotateX(15deg); }
+.judge-platform { position: absolute; width: 64%; height: 46px; left: 18%; top: 30%; background: var(--room-line); border-top: 2px solid var(--room-wall); border-radius: 4px 4px 28px 28px; box-shadow: 0 5px 0 color-mix(in srgb, var(--room-line) 60%, var(--room-floor)); }
+.judge-bench { position: absolute; left: 24%; right: 24%; top: 26%; height: 38px; border-top: 7px solid var(--timber-edge); border-radius: 7px 7px 3px 3px; background: linear-gradient(90deg, color-mix(in srgb, var(--timber) 80%, var(--primary-950)), var(--timber), color-mix(in srgb, var(--timber) 80%, var(--primary-950))); box-shadow: 0 8px 10px color-mix(in srgb, var(--primary-950) 16%, transparent); display: flex; align-items: center; justify-content: center; }
+.judge-bench span { display: none; }.judge-bench i { position: absolute; inset: 4px 12px; border: 1px solid color-mix(in srgb, var(--brass) 55%, transparent); }.judge-bench i:last-child { inset: 7px 16px; }
+.counsel-desk { position: absolute; top: 52%; height: 37px; width: 25%; border-radius: 5px 5px 2px 2px; border-top: 9px solid var(--timber-edge); background: var(--timber); box-shadow: 0 10px 12px color-mix(in srgb, var(--primary-950) 16%, transparent); transform: skewY(4deg); }
+.desk-prosecution { left: 9%; }.desk-defense { right: 9%; transform: skewY(-4deg); }
+.counsel-desk::after { content: ""; position: absolute; width: 18px; height: 28px; right: 18%; top: -23px; border: 1px solid var(--room-line); background: var(--room-wall); transform: rotate(8deg); }
+.advisory-table { position: absolute; top: 79%; left: 10%; right: 10%; height: 32px; border-top: 8px solid var(--timber-edge); border-radius: 16px 16px 4px 4px; background: var(--timber); box-shadow: 0 10px 12px color-mix(in srgb, var(--primary-950) 15%, transparent); }
+.gallery-rail { position: absolute; bottom: -10px; left: 3%; right: 3%; height: 32px; border-top: 9px solid var(--timber-edge); background: repeating-linear-gradient(90deg, var(--timber) 0 7px, transparent 7px 28px); opacity: .65; }
+.courtroom-seats { position: absolute; inset: 0; }
+.scene-agent { position: absolute; left: 50%; top: 10%; transform: translateX(-50%); width: 160px; z-index: 2; }
+.scene-prosecution { left: 22%; top: 38%; }.scene-defense { left: 78%; top: 38%; }
+.scene-constitutional { left: 22%; top: 65%; }.scene-advisor { left: 50%; top: 66%; }.scene-moral { left: 78%; top: 65%; }
+.agent-seat { --blob: #a4b6ba; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; padding: 6px; width: 100%; cursor: pointer; border: 0; background: transparent; border-radius: 12px; color: var(--room-ink); min-width: 0; }
+.seat-judge { --blob: #c8a15b; }.seat-prosecution { --blob: #d58365; }.seat-defense { --blob: #7899c2; }.seat-constitutional { --blob: #78a99a; }.seat-moral { --blob: #b6a3c2; }
+.agent-figure { display: block; width: 94px; height: 108px; position: relative; }
+.agent-blob { position: absolute; width: 76px; height: 85px; left: 9px; top: 7px; z-index: 1; background: radial-gradient(ellipse at 28% 18%, color-mix(in srgb, var(--blob) 60%, white) 0, transparent 45%), radial-gradient(ellipse at 75% 85%, color-mix(in srgb, var(--blob) 60%, var(--primary-900)), transparent 65%), var(--blob); border-radius: 46% 54% 39% 44% / 50% 43% 57% 50%; box-shadow: inset 3px 5px 6px color-mix(in srgb, white 35%, transparent), inset -4px -5px 8px color-mix(in srgb, var(--primary-950) 24%, transparent), 0 5px 5px color-mix(in srgb, var(--primary-950) 12%, transparent); transition: transform .32s cubic-bezier(.2,.8,.2,1); }
+.seat-judge .agent-blob { height: 96px; width: 84px; left: 5px; border-radius: 44% 46% 32% 32%; }
+.seat-defense .agent-blob { border-radius: 49% 43% 48% 38% / 45% 54% 43% 51%; }.seat-moral .agent-blob { border-radius: 45% 58% 45% 51% / 60% 47% 45% 43%; }
+.blob-highlight { position: absolute; top: 12%; left: 15%; width: 24%; height: 8%; border-radius: 50%; background: color-mix(in srgb, white 35%, transparent); transform: rotate(-30deg); }
+.blob-face { position: absolute; top: 36%; left: 28%; width: 46%; height: 34%; }
+.blob-face i { position: absolute; top: 1px; width: 5px; height: 8px; background: var(--primary-950); border-radius: 50%; left: 2px; }.blob-face i:nth-child(2) { left: auto; right: 2px; }
+.blob-face b { position: absolute; top: 18px; left: 35%; width: 10px; height: 5px; border-bottom: 2px solid var(--primary-950); border-radius: 0 0 50% 50%; }
+.seat-prosecution .blob-face b { border-radius: 0; width: 8px; }.seat-judge .blob-face b { border-radius: 0; width: 9px; }
+.blob-role { position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%); color: var(--primary-950); opacity: .7; }
+.judge-collar { position: absolute; left: 24%; width: 52%; height: 11px; top: 72%; background: var(--primary-50); clip-path: polygon(0 0, 48% 25%, 100% 0, 80% 100%, 50% 60%, 20% 100%); }
+.seat-judge .blob-role { bottom: 4px; z-index: 2; }
+.blob-shadow { position: absolute; height: 10px; width: 68px; left: 13px; bottom: 4px; border-radius: 50%; background: color-mix(in srgb, var(--primary-950) 17%, transparent); filter: blur(2px); }
+.agent-name { font-weight: 650; font-size: 12px; line-height: 1.5; padding: 2px 7px; border-radius: 5px; background: color-mix(in srgb, var(--room-wall) 94%, transparent); border: 1px solid transparent; white-space: nowrap; }
+.agent-state { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 10px; line-height: 1.5; margin-top: 4px; color: var(--room-ink); padding: 1px 4px; border-radius: 3px; background: var(--room-wall); }
+.agent-inspect-hint { font-size: 9px; color: var(--room-muted); margin-top: 4px; }
+.agent-seat:hover .agent-blob { transform: translateY(-7px) rotate(-4deg); }.agent-seat:active .agent-blob { transform: scale(.95); }
+.agent-seat[data-selected="true"] .agent-name { border-color: var(--room-ink); }.agent-seat[data-selected="true"] .agent-blob::after { content: ""; position: absolute; inset: -6px; border: 1px solid var(--room-ink); border-radius: inherit; }
+.agent-seat[data-active="true"] .agent-state { background: var(--room-ink); color: var(--room-wall); }
+.chamber-caption { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 16px 20px; border-top: 1px solid var(--room-line); color: var(--room-muted); font-size: 10px; gap: 8px; }
+.scene-key { display: flex; align-items: center; gap: 6px; }.scene-key i { height: 5px; width: 5px; background: var(--room-muted); border-radius: 50%; }
+.chamber-context { padding: 18px 4px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; color: var(--neutral-600); font-size: 12px; line-height: 1.7; }
+.chamber-context > div { display: flex; gap: 10px; }.chamber-context svg { flex-shrink: 0; margin-top: 2px; }.chamber-context strong { color: var(--foreground); display: block; font-weight: 600; }.chamber-context > button { display: flex; flex-shrink: 0; align-items: center; gap: 8px; cursor: pointer; font-size: 11px; color: var(--foreground); padding-top: 3px; }
+.case-dossier { padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; }
+.dossier-title { display: flex; align-items: center; gap: 8px; }
+.dossier-title h2 { font-size: 24px; }
+.dossier-title > span { margin-left: auto; color: var(--neutral-500); font-size: 12px; }
+.case-dossier > p { font-size: 14px; line-height: 1.7; margin-top: 12px; color: var(--neutral-600); }
+.document-upload { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; border: 1px dashed var(--primary-400); border-radius: 12px; background: var(--surface-alt); padding: 24px 12px; margin: 20px 0; text-align: center; cursor: pointer; }
+.document-upload strong { font-size: 14px; font-weight: 600; }
+.document-upload span { font-size: 12px; color: var(--neutral-600); }
+.document-upload input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+.document-upload:focus-within { outline: 2px solid var(--primary-500); outline-offset: 3px; }
+.document-upload[data-disabled="true"] { opacity: .6; }
+.attached-document { display: flex; align-items: center; gap: 8px; overflow-wrap: anywhere; }
+.case-text-label { display: block; font-size: 12px; font-weight: 600; margin: 16px 0 8px; }
+.case-dossier textarea { resize: vertical; min-height: 200px; width: 100%; border: 1px solid var(--border); border-radius: 8px; background: var(--background); padding: 12px; font-size: 14px; line-height: 1.7; color: var(--foreground); }
+.case-text-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; font-size: 10px; color: var(--neutral-600); }
+.case-text-meta button { text-decoration: underline; text-underline-offset: 3px; font-size: 12px; cursor: pointer; }
+.case-dossier > .dossier-help { font-size: 12px; margin-top: 16px; }
+.start-hearing { display: flex; width: 100%; align-items: center; justify-content: center; gap: 8px; padding: 14px 12px; margin-top: 20px; font-size: 14px; font-weight: 600; }
+.start-hearing:disabled { opacity: .55; cursor: not-allowed; }
+.stop-hearing { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; font-size: 12px; cursor: pointer; margin-top: 4px; }
+.hearing-status { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin: 20px 0 28px; color: var(--neutral-600); font-size: 12px; }
+.hearing-status > span:first-child { text-transform: capitalize; }
+.agent-report-panel, .hearing-transcript, .judge-summary { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 28px; margin-top: 24px; }
+.section-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+.section-heading h2 { font-size: 28px; margin-top: 4px; line-height: 1.2; }
+.section-heading p { font-size: 12px; color: var(--neutral-600); margin-top: 8px; }
+.section-heading > span { font-size: 12px; color: var(--neutral-600); flex-shrink: 0; }
+.hearing-empty { display: flex; gap: 16px; align-items: center; padding: 24px 0; color: var(--neutral-600); font-size: 14px; line-height: 1.7; }
+.hearing-empty svg { flex-shrink: 0; color: var(--primary-500); }
+.agent-submissions { display: grid; gap: 16px; }
+.submission-activity { border-left: 2px solid var(--border); padding: 0 16px; }
+.submission-report { background: var(--background); border: 1px solid var(--border); padding: 20px; border-radius: 8px; }
+.submission-label { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--primary-600); text-transform: capitalize; margin-bottom: 12px; }
+.submission-report > p, .submission-activity > p, .summary-text, .judge-review p, .transcript-content p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; font-size: 14px; }
+.submission-activity > p { color: var(--neutral-600); }
+.submission-citations { display: flex; gap: 8px; margin-top: 16px; color: var(--primary-600); font-size: 12px; overflow-wrap: anywhere; }
+.summary-outcome { font-size: 16px; line-height: 1.7; border-left: 3px solid var(--primary-500); padding: 12px 20px; background: var(--surface-alt); margin-top: 20px; }
+.judge-review { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+.judge-review strong { font-size: 14px; }
+.judge-review p { margin-top: 8px; }
+.judge-review ul, .judge-summary details ul { list-style: disc; padding-left: 20px; font-size: 14px; line-height: 1.8; margin-top: 12px; }
+.judge-summary details { margin-top: 20px; font-size: 14px; }
+.judge-summary summary { cursor: pointer; }
+.transcript-placeholder { color: var(--neutral-600); font-size: 14px; line-height: 1.7; padding: 12px 0; }
+.transcript-entry { border-top: 1px solid var(--border); }
+.transcript-entry summary { list-style: none; display: flex; align-items: center; gap: 16px; padding: 16px 0; cursor: pointer; }
+.transcript-entry summary::-webkit-details-marker { display: none; }
+.transcript-number { font-family: var(--font-jetbrains), monospace; font-size: 12px; color: var(--neutral-500); }
+.transcript-who { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.transcript-who strong { font-size: 14px; font-weight: 600; }
+.transcript-who > span, .transcript-entry time { font-size: 12px; color: var(--neutral-600); text-transform: capitalize; }
+.transcript-entry[open] summary > svg { transform: rotate(90deg); }
+.transcript-content { margin: 0 0 20px 32px; }
+.transcript-content > span, .transcript-link { display: block; margin-top: 12px; font-size: 12px !important; color: var(--neutral-600); overflow-wrap: anywhere; }
+.hearing-warnings { margin-top: 24px; padding: 20px; border: 1px solid var(--accent-300); border-radius: 12px; background: var(--surface); }
+.hearing-warnings h2 { font-size: 24px; }
+.hearing-warnings ul { margin-top: 8px; padding-left: 20px; list-style: disc; font-size: 12px; line-height: 1.8; color: var(--neutral-600); overflow-wrap: anywhere; }
+.courtroom-footnote { font-size: 12px; line-height: 1.8; color: var(--neutral-600); margin-top: 24px; max-width: 850px; }
+.hearing-error { color: var(--danger) !important; font-size: 14px; line-height: 1.7; margin: 12px 0; }
+.courtroom-workspace button:focus-visible, .courtroom-workspace textarea:focus-visible, .courtroom-workspace summary:focus-visible { outline: 2px solid var(--primary-500); outline-offset: 4px; }
+.courtroom-chamber button:focus-visible { outline-color: var(--room-ink); }
+.agent-inspector { border: 1px solid var(--border); border-radius: 18px; background: var(--surface); overflow: hidden; animation: inspector-enter .25s ease-out; }
+.inspector-header { padding: 20px 24px; }
+.inspector-back { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--neutral-600); cursor: pointer; min-height: 32px; margin-bottom: 16px; }.inspector-back:hover { color: var(--foreground); }
+.inspector-role-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: var(--surface-alt); color: var(--primary-600); margin-bottom: 12px; }
+[data-theme="dark"] .inspector-role-icon { color: var(--primary-200); }
+.inspector-header .courtroom-eyebrow { font-size: 9px; letter-spacing: .08em; }
+.inspector-header h2 { font-family: var(--font-manrope), sans-serif; font-size: 23px; font-weight: 600; letter-spacing: -.04em; margin: 6px 0 8px; }
+.inspector-mandate { font-size: 12px; color: var(--neutral-600); line-height: 1.7; }
+.inspector-stages { display: flex; border-block: 1px solid var(--border); padding: 0 16px; gap: 8px; }
+.inspector-stage { flex: 1; padding: 14px 0 12px; font-size: 11px; cursor: pointer; color: var(--neutral-600); border-bottom: 2px solid transparent; }
+.inspector-stage[data-selected="true"] { border-bottom-color: var(--foreground); color: var(--foreground); font-weight: 650; }
+.inspector-body { padding: 20px 24px 24px; max-height: 650px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.inspector-body p { font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
+.inspector-body h3 { font-family: var(--font-manrope), sans-serif; font-size: 13px; font-weight: 650; letter-spacing: -.01em; margin-bottom: 8px; }
+.inspector-body h4 { font-size: 12px; font-weight: 600; }
+.inspector-body details { font-size: 12px; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px; }
+.inspector-body summary { cursor: pointer; line-height: 1.8; font-weight: 600; }
+.inspector-sources > p { color: var(--neutral-600); margin-top: 8px; }
+.inspector-sources > p:nth-child(3) { font-size: 10px; }
+.inspector-source-link { display: flex; align-items: center; gap: 6px; font-size: 11px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; margin-top: 12px; color: var(--primary-600); text-align: left; }
+[data-theme="dark"] .inspector-source-link { color: var(--primary-200); }
+.inspector-conclusion { margin-top: 20px; padding: 16px; border-radius: 10px; background: var(--surface-alt); }
+.inspector-conclusion small { display: block; font-size: 10px; line-height: 1.6; color: var(--neutral-600); margin-top: 8px; }
+.inspector-body .explanation-heading { gap: 6px; }.inspector-body .explanation-heading h3 { margin-bottom: 0; font-size: 16px; }.inspector-body .explanation-heading > span { display: none; }
+.inspector-body .public-explanation p, .inspector-body .public-explanation ul { font-size: 12px; }
+.inspector-body .evidence-record { padding: 12px; background: var(--surface-alt); }.inspector-body .evidence-reference { gap: 6px; }.inspector-body .evidence-reference > strong, .inspector-body .evidence-reference > span { font-size: 10px; }
+.inspector-body .evidence-record blockquote { font-size: 12px; line-height: 1.8; }.inspector-body .evidence-record a { font-size: 11px; }
+.inspector-body .explanation-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 20px; }.inspector-body .explanation-grid > div { padding-top: 12px; }
+.inspector-body .explanation-caveat { font-size: 10px; }.inspector-body .position-change { border-left: 2px solid var(--primary-400); border-radius: 0; background: var(--surface-alt); }
+.inspector-coverage { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 16px; margin-top: 16px; border-top: 1px solid var(--border); list-style: none; }
+.inspector-coverage li { font-size: 9px; padding: 4px 7px; border-radius: 4px; background: var(--surface-alt); color: var(--neutral-600); }
+.inspector-meta { margin-top: 20px; color: var(--neutral-600); }.inspector-meta p { font-size: 10px; margin-top: 6px; }.inspector-meta code { overflow-wrap: anywhere; font-size: 9px; }
+.inspector-judge-reasons { margin-top: 20px; }.inspector-judge-reasons ul { list-style: disc; padding-left: 16px; font-size: 12px; line-height: 1.8; margin-top: 8px; }.inspector-judge-reasons h4 { margin-top: 16px; }
+.inspector-full-report p { margin-top: 12px; }.submission-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.inspector-empty { padding: 32px 8px; text-align: center; color: var(--neutral-600); }.inspector-empty > svg { margin: 0 auto 12px; }.inspector-empty h3 { color: var(--foreground); }
+.inspector-activity ol { padding-left: 16px; list-style: decimal; }.inspector-activity li { padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 11px; }.inspector-activity time { display: block; font-size: 9px; color: var(--neutral-600); margin: 4px 0; }.inspector-activity small { font-size: 9px; color: var(--neutral-600); }
+.inspector-body .inspector-disclaimer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 10px; color: var(--neutral-600); }
+.case-source-record { scroll-margin-top: 88px; }
+.hearing-spinner { animation: hearing-spin 1s linear infinite; }
+@keyframes inspector-enter { from { opacity: .5; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes agent-breathe { 50% { transform: translateY(-5px) scale(1.02, .98); } }
+@media (prefers-reduced-motion: no-preference) { .courtroom-chamber:not([data-motion-paused="true"]) .agent-seat[data-active="true"] .agent-blob { animation: agent-breathe 2.1s ease-in-out infinite; } }
+@keyframes hearing-spin { to { transform: rotate(360deg); } }
+@keyframes session-pulse { 50% { opacity: .35; } }
+@media (max-width: 1023px) { .courtroom-columns { grid-template-columns: minmax(0, 1fr); } .case-dossier textarea { min-height: 160px; } .inspector-body { max-height: none; overflow: visible; } .courtroom-heading-actions { flex-shrink: 1; } }
+@media (max-width: 639px) { .courtroom-heading { align-items: flex-start; flex-direction: column; gap: 20px; } .courtroom-heading-actions { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; gap: 12px; } .courtroom-mode { justify-content: flex-start; font-size: 12px; text-align: left; }.courtroom-mode span { text-align: left; font-size: 9px; } .report-pdf-button { padding: 10px; font-size: 10px; } .hearing-steps { gap: 4px; margin: 20px 0; } .hearing-steps li { flex-direction: column; text-align: center; font-size: 9px; gap: 8px; } .step-arrow { display: none; } .courtroom-notice { font-size: 11px; padding: 12px; gap: 8px; } .chamber-topline { font-size: 10px; padding: 10px 12px; gap: 8px; } .motion-toggle { font-size: 9px; }.motion-toggle > span { display: none; } .courtroom-scene { height: 510px; } .scene-agent { width: 100px; } .scene-prosecution { left: 20%; top: 38%; }.scene-defense { left: 80%; top: 38%; }.scene-constitutional { left: 19%; top: 67%; }.scene-moral { left: 81%; top: 67%; }.scene-advisor { top: 67%; } .agent-figure { width: 70px; height: 83px; }.agent-blob { width: 58px; height: 66px; left: 6px; }.seat-judge .agent-blob { width: 66px; height: 78px; left: 2px; }.blob-face i { height: 6px; width: 4px; }.blob-face b { top: 14px; width: 8px; }.blob-role { bottom: 7px; }.blob-role svg { width: 13px; height: 13px; }.blob-shadow { width: 48px; left: 11px; bottom: 0; }.seat-judge .agent-figure { height: 90px; }.agent-name { font-size: 10px; padding: 2px 4px; }.agent-state { font-size: 8px; gap: 3px; }.agent-inspect-hint { font-size: 8px; }.room-window { top: 24px; height: 84px; border-width: 3px; }.judge-platform { width: 76%; left: 12%; }.judge-bench { left: 16%; right: 16%; }.counsel-desk { width: 28%; }.desk-prosecution { left: 6%; }.desk-defense { right: 6%; }.advisory-table { left: 5%; right: 5%; top: 81%; }.room-seal { width: 40px; height: 40px; top: 14px; }.chamber-caption { padding: 12px; font-size: 9px; }.chamber-context { flex-direction: column; gap: 8px; padding: 14px 4px; }.chamber-context > button { margin-left: 28px; }.agent-report-panel, .hearing-transcript, .judge-summary { padding: 20px; } .transcript-entry summary { gap: 8px; } .transcript-entry time { font-size: 10px; } .transcript-content { margin-left: 0; } .section-heading h2 { font-size: 24px; }.transparency-protocol { padding: 20px; }.transparency-protocol h2 { font-size: 22px; }.transparency-protocol p { font-size: 12px; }.inspector-header, .inspector-body { padding: 20px; } }
+@media (max-width: 639px) { .courtroom-scene { height: 560px; } .scene-agent { width: 90px; } }
+.courtroom-chamber[data-motion-paused="true"] .hearing-spinner, .courtroom-chamber[data-motion-paused="true"] .session-dot-live { animation: none; }
+.courtroom-chamber[data-motion-paused="true"] .agent-blob { transition: none; }
+@media (prefers-reduced-motion: reduce) { .hearing-spinner, .session-dot-live, .agent-inspector { animation: none; } .agent-blob, .report-pdf-button { transition: none; }.agent-seat:hover .agent-blob { transform: none; } }

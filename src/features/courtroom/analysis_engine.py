@@ -17,6 +17,7 @@ from src.features.courtroom.roles import (
     build_role_user_prompt,
 )
 from src.features.courtroom.schemas import CourtroomRoleAnalysis
+from src.features.courtroom.public_explanation import validate_public_explanation
 from src.utils.llm_client import LLMClient
 
 
@@ -57,7 +58,7 @@ class CourtroomAnalysisEngine:
                 warnings=warnings,
             )
 
-        if not self.live_enabled:
+        if not self.live_enabled or not settings.courtroom_enable_live_llm:
             warnings.append(
                 "Live LLM disabled for current runtime; using deterministic fallback."
             )
@@ -75,6 +76,10 @@ class CourtroomAnalysisEngine:
                     mode=mode,
                     evidence_blocks=evidence_blocks or [],
                 )
+                if analysis.public_explanation is None:
+                    warnings.append(f"{role_name}: public explanation missing or invalid.")
+                elif any(not e.quote_verified for e in analysis.public_explanation.supporting_evidence):
+                    warnings.append(f"{role_name}: public evidence quotation or source unverified.")
                 return RoleAnalysisResult(analysis=analysis, warnings=warnings)
             except Exception as exc:
                 warnings.append(
@@ -126,7 +131,7 @@ class CourtroomAnalysisEngine:
             prompt=prompt,
             system_prompt=system_prompt,
             temperature=0.15,
-            max_tokens=650,
+            max_tokens=1200,
         )
         parsed = self._parse_role_json(raw)
 
@@ -146,6 +151,9 @@ class CourtroomAnalysisEngine:
             confidence = 0.55
         confidence = max(0.0, min(1.0, confidence))
 
+        explanation, _ = validate_public_explanation(
+            parsed.get("public_explanation"), case_text[:25000], evidence_blocks,
+        )
         return CourtroomRoleAnalysis(
             role_name=role_name,
             analysis_text=analysis_text,
@@ -154,6 +162,8 @@ class CourtroomAnalysisEngine:
             provider=route.provider,
             model=route.model,
             degraded=False,
+            public_explanation=explanation,
+            source_evidence=[{**block, "excerpt": block.get("excerpt", "")[:500]} for block in evidence_blocks],
         )
 
     def _parse_role_json(self, raw: str) -> dict[str, Any]:
@@ -189,10 +199,7 @@ class CourtroomAnalysisEngine:
                 f"{role_name} fallback analysis generated because live model routes were unavailable. "
                 f"Mode={mode}. This output preserves response structure for downstream scoring/synthesis."
             ),
-            citations=[
-                "Section reference pending retrieval",
-                "Article reference pending retrieval",
-            ],
+            citations=[],
             confidence=0.45,
             provider="fallback",
             model="deterministic-template",

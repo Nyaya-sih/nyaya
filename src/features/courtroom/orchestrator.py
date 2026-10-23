@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Callable
 
 from src.config.settings import settings
 from src.features.courtroom.analysis_engine import (
@@ -28,6 +29,9 @@ class CourtroomOrchestrator:
         case_text: str,
         top_k_legal: int,
         role_model_overrides: dict[str, list[dict[str, str]]] | None = None,
+        on_started: Callable[[str], None] | None = None,
+        on_finished: Callable[[CourtroomRoleAnalysis], None] | None = None,
+        is_cancelled: Callable[[], bool] = lambda: False,
     ) -> tuple[list[CourtroomRoleAnalysis], list[str]]:
         """Run role analyses in parallel for selected mode."""
         roles = QUICK_MODE_ROLES if mode == "quick" else FULL_MODE_ROLES
@@ -38,6 +42,8 @@ class CourtroomOrchestrator:
 
         role_evidence: dict[str, list[dict[str, str]]] = {}
         for role in roles:
+            if is_cancelled():
+                return [], warnings
             blocks, retrieval_warnings = self.retrieval_adapter.retrieve_for_role(
                 role_name=role,
                 case_text=case_text,
@@ -46,15 +52,21 @@ class CourtroomOrchestrator:
             role_evidence[role] = blocks
             warnings.extend(retrieval_warnings)
 
+        def execute(role):
+            if is_cancelled():
+                return None
+            if on_started:
+                on_started(role)
+            return self.analysis_engine.run_role(
+                role_name=role, case_text=case_text, mode=mode,
+                evidence_blocks=role_evidence.get(role, []),
+                role_model_overrides=role_model_overrides,
+            )
+
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
             futures = {
                 pool.submit(
-                    self.analysis_engine.run_role,
-                    role_name=role,
-                    case_text=case_text,
-                    mode=mode,
-                    evidence_blocks=role_evidence.get(role, []),
-                    role_model_overrides=role_model_overrides,
+                    execute, role,
                 ): role
                 for role in roles
             }
@@ -63,6 +75,8 @@ class CourtroomOrchestrator:
                 role = futures[future]
                 try:
                     result: RoleAnalysisResult = future.result()
+                    if result is None or is_cancelled():
+                        continue
                     outputs.append(result.analysis)
                     warnings.extend(result.warnings)
                 except Exception as exc:
@@ -74,6 +88,8 @@ class CourtroomOrchestrator:
                             role_name=role, mode=mode, degraded=True
                         )
                     )
+                if not is_cancelled() and on_finished:
+                    on_finished(outputs[-1])
 
         role_order = {name: idx for idx, name in enumerate(roles)}
         outputs.sort(key=lambda item: role_order.get(item.role_name, 999))

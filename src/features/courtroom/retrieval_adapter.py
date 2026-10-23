@@ -25,6 +25,12 @@ class CourtroomRetrievalAdapter:
         "Legal Analyst": (
             "Focus on neutral statutory interpretation, procedural regularity, and evidentiary coherence."
         ),
+        "Moral Advisor": (
+            "Focus on dignity, equality, autonomy, harm, and competing ethical values. "
+            "Distinguish non-binding ethical opinions from enforceable Indian law; "
+            "protect constitutional rights, due process, and the presumption of innocence, "
+            "not punishment based on moral disapproval."
+        ),
     }
 
     def __init__(self) -> None:

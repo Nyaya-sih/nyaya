@@ -1,11 +1,15 @@
 """FastAPI router for Phase 4 simulated courtroom."""
 
 import asyncio
+import re
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import WebSocket, WebSocketDisconnect
+from fastapi.responses import Response
 
 from src.api.dependencies import get_courtroom_service
+from src.features.courtroom.document_router import router as document_router
+from src.features.courtroom.report_pdf import build_report_pdf
 from src.features.courtroom.schemas import (
     CancelCourtroomAnalysisResponse,
     CourtroomAnalysisResponse,
@@ -14,7 +18,9 @@ from src.features.courtroom.schemas import (
     CreateCourtroomAnalysisResponse,
     TrialEvent,
 )
-from src.features.courtroom.service import CourtroomRunNotFoundError, CourtroomService
+from src.features.courtroom.service import (
+    CourtroomCapacityError, CourtroomRunNotFoundError, CourtroomService,
+)
 
 
 router = APIRouter(prefix="/api/v1/courtroom", tags=["Simulated Courtroom"])
@@ -26,7 +32,10 @@ def analyze_case(
     courtroom_service: CourtroomService = Depends(get_courtroom_service),
 ) -> CreateCourtroomAnalysisResponse:
     """Start a simulated courtroom analysis run."""
-    return courtroom_service.create_analysis(payload)
+    try:
+        return courtroom_service.create_analysis(payload)
+    except CourtroomCapacityError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.get("/analysis/{analysis_id}", response_model=CourtroomAnalysisResponse)
@@ -39,6 +48,31 @@ def get_analysis(
         return courtroom_service.get_analysis(analysis_id)
     except CourtroomRunNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+
+
+@router.get(
+    "/analysis/{analysis_id}/report.pdf",
+    response_class=Response,
+    responses={200: {"content": {"application/pdf": {}}}},
+)
+def download_analysis_report(
+    analysis_id: str,
+    courtroom_service: CourtroomService = Depends(get_courtroom_service),
+) -> Response:
+    """Download the canonical public snapshot, including incomplete runs."""
+    try:
+        report = courtroom_service.get_analysis(analysis_id)
+    except CourtroomRunNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    safe_id = re.sub(r"[^A-Za-z0-9_-]", "_", report.analysis_id)[:120] or "analysis"
+    return Response(
+        content=build_report_pdf(report),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="courtroom-{safe_id}.pdf"',
+            "Cache-Control": "no-store",
+        },
+    )
 
 
 @router.get(
@@ -112,18 +146,19 @@ async def stream_analysis_events(
                 sent_event_ids.add(event_id)
             await websocket.send_json(event)
 
-        current_run = courtroom_service.store.get_run(analysis_id)
-        if current_run and current_run.status in {"completed", "degraded", "failed", "cancelled"}:
-            await websocket.close()
-            return
-
         while True:
+            current_run = courtroom_service.store.get_run(analysis_id)
+            if current_run and current_run.status in {"completed", "degraded", "failed", "cancelled"}:
+                # Drain persisted history too: completion may race the initial replay.
+                for pending in courtroom_service.get_trial_events(analysis_id):
+                    if pending["event_id"] not in sent_event_ids:
+                        await websocket.send_json(pending)
+                        sent_event_ids.add(pending["event_id"])
+                await websocket.close()
+                break
             try:
                 event = await asyncio.wait_for(queue.get(), timeout=1.0)
             except asyncio.TimeoutError:
-                current_run = courtroom_service.store.get_run(analysis_id)
-                if current_run and current_run.status in {"completed", "degraded", "failed", "cancelled"}:
-                    break
                 continue
 
             event_id = str(event.get("event_id", ""))
@@ -137,3 +172,9 @@ async def stream_analysis_events(
         return
     finally:
         courtroom_service.event_broker.unsubscribe(subscription)
+
+
+courtroom_router = router
+router = APIRouter()
+router.include_router(courtroom_router)
+router.include_router(document_router)

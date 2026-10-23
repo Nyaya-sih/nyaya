@@ -11,7 +11,9 @@ get_db_session(): Yields SQLAlchemy session, closes in finally
 from typing import Generator
 
 from fastapi import Request, HTTPException, WebSocket
+from loguru import logger
 from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError, TimeoutError as DatabaseTimeoutError
 from sqlalchemy.orm import sessionmaker, Session
 
 from src.config.settings import settings
@@ -43,8 +45,19 @@ def get_db_session() -> Generator[Session, None, None]:
     session = session_local()
     try:
         yield session
+    except (OperationalError, DatabaseTimeoutError) as exc:
+        session.rollback()
+        logger.error(
+            "Database unavailable; check DATABASE_URL and the PostgreSQL service",
+            error_type=type(exc).__name__,
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="Database unavailable. Check the PostgreSQL service and DATABASE_URL.",
+        ) from exc
     finally:
         session.close()
+        engine.dispose()
 
 
 def get_legal_assistant_service(request: Request):
